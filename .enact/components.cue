@@ -97,12 +97,14 @@ let goWorkspaceVerify = {
 }
 
 // go-lint.yml: gofmt and golangci-lint over the changed files' packages; golangci-lint
-// type-checks them, which takes a runner's memory.
+// type-checks them, which takes a runner's memory: cold over 6 heavy packages (pkg/api,
+// ngalert/api, ...) it peaked at 8.9 GB with 3 cores and 9.3 GB with 4 (summed tree RSS,
+// macOS). 3 cores keep it inside the 13 GB tonky-ci slot (11 GB usable).
 let goLint = {
 	_more: *[] | [...{}]
 	out: {
 		direct: true
-		resources: {cpus: 4, memory_mb: 12288}
+		resources: {cpus: 3, memory_mb: 10240}
 		tasks: list.Concat([[{
 			command: "helpers/go-lint.sh {changed_files}"
 			filter: {include: ["**/*.go"], on_empty: "skip"}
@@ -650,11 +652,14 @@ pipeline: {
 			watch_paths: backendSources
 			depends_on: ["go-root", "base"]
 			workspace_scope: include: backendTrees
-			resources: {cpus: 4, memory_mb: 12288}
+			// `go test -p` follows the cores (GOMAXPROCS): over 6 heavy packages (pkg/api,
+			// ngalert/api, ...) it peaked at 8.9 GB with 3 and 11 GB with 4 (summed tree RSS,
+			// macOS), which the 13 GB tonky-ci slot (11 GB usable) doesn't hold.
+			resources: {cpus: 3, memory_mb: 10240}
 			shards:   8
 			recorder: "trace"
 			// A recording runs one traced `go test -run` at a time: ~1.2 cores, 1-2.3 GB
-			// peaks. At the test size (x2 RAM: 24 GB) its 8 shards ran one at a time.
+			// peaks. At the test size (x2 RAM: 20 GB) its 8 shards ran one at a time.
 			record_resources: {cpus: 1.5, memory_mb: 3072}
 			jobs: lint: (goLint & {
 				_more: [
