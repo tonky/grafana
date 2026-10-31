@@ -12,13 +12,15 @@ import (
 
 	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/storage/unified/resource/kv"
+	"github.com/grafana/grafana/pkg/util/testutil"
 )
 
-// TestDiscoveryEmbeddedCluster starts two embedded servers sharing a KV-backed peer
-// registry and asserts they self-assemble into a working cluster, exercising the real
-// ProvideServer/dskit lifecycle end-to-end. Deliberately not named TestIntegration*:
-// the registry is in-memory Badger, so the per-database matrix would only repeat it.
-func TestDiscoveryEmbeddedCluster(t *testing.T) {
+// TestIntegrationDiscoveryEmbeddedCluster starts two embedded servers sharing a
+// KV-backed peer registry and asserts they self-assemble into a working cluster,
+// exercising the real ProvideServer/dskit lifecycle end-to-end.
+func TestIntegrationDiscoveryEmbeddedCluster(t *testing.T) {
+	testutil.SkipIntegrationTestInShortMode(t)
+
 	t.Run("servers discover each other and form a cluster route", func(t *testing.T) {
 		_, a, b, _, _ := startTwoNodeCluster(t)
 
@@ -63,10 +65,12 @@ func TestDiscoveryEmbeddedCluster(t *testing.T) {
 	})
 }
 
-// TestDiscoveryDisabled asserts that discovery_enabled=false leaves a node
-// standalone: no discovery loop is wired even with a KV present, so it never
+// TestIntegrationDiscoveryDisabled asserts that discovery_enabled=false leaves a
+// node standalone: no discovery loop is wired even with a KV present, so it never
 // solicits peer routes.
-func TestDiscoveryDisabled(t *testing.T) {
+func TestIntegrationDiscoveryDisabled(t *testing.T) {
+	testutil.SkipIntegrationTestInShortMode(t)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 
