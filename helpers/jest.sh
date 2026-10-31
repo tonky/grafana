@@ -103,7 +103,7 @@ if [[ ${#targets[@]} -gt 0 ]]; then
             "${ENACT_EXE:-enact}" trace run --outcomes --shared-tmpdir --no-fingerprint --node-functions \
                 --reach-file "${ENACT_FOOTPRINT_DIR}/jest-traced-${n}.json" \
                 -t "${rel_target}" -- \
-                yarn jest "${args[@]}" --reporters=default "--reporters=${GRAFANA_ROOT}/helpers/jest-attribution.cjs" \
+                yarn jest "${args[@]}" --runInBand --reporters=default "--reporters=${GRAFANA_ROOT}/helpers/jest-attribution.cjs" \
                 --passWithNoTests --runTestsByPath "${target}" || status=1
         done
         exit "${status}"
