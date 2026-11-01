@@ -26,7 +26,13 @@ pipeline: schema.#Pipeline & {
 	// CI's matrix jobs install the yarn workspace (yarn.lock) before the frontend's tasks.
 	toolchain: node: package_manager: "yarn"
 	ci: {
+		no_cache: {labels: ["no-cache", "showcase"], branch_prefixes: ["showcase/"]}
 		concurrency: max_parallel_jobs: 16
+		remote_cache: {
+			secrets: {bucket: "R2_BUCKET", access_key_id: "R2_ACCESS_KEY_ID", secret_access_key: "R2_SECRET_ACCESS_KEY"}
+			public_url: "https://pub-30fd937eb7634039b8c49d49bfec91a9.r2.dev"
+			public_key: "enve-r2-1:ckHPTeWVef6mba+1AwWHjKYCsUWKPfP9IXPm5YXNoHg="
+		}
 		// Runner sizes within ibp8/mac1 shared host budget (agentic/KNOWLEDGE.md tonky-ci).
 		workers: {
 			standard: {
@@ -67,8 +73,8 @@ pipeline: schema.#Pipeline & {
 			layout:   "staged"
 			services: "on_demand"
 			triggers: {
-				push: branches: ["main", "perf/ci-showcase"]
-				pull_request: branches: ["main"]
+				push: branches:         ["main", "perf/ci-showcase"]
+				pull_request: branches: ["main", "perf/ci-showcase"]
 			}
 			stages: _stages
 		}
