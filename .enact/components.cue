@@ -260,7 +260,7 @@ pipeline: {
 			root:  "."
 			watch_paths: [
 				"enve.cue", "enve.lock", ".enact/**", "cue.mod/**", ".github/workflows/ci.yml",
-				"bin/linux-x86_64/**", "bin/linux-aarch64/**",
+				"bin/linux-x86_64/**", "bin/linux-aarch64/**", "bin/macos-aarch64/**", "bin/enact", "bin/enve",
 				"helpers/lib.sh", "helpers/postgres-setup.sh", "helpers/mysql-setup.sh",
 				".gitattributes", ".gitignore", ".ignore", ".editorconfig", "data/**",
 			]
@@ -342,7 +342,7 @@ pipeline: {
 		}
 
 		base: {
-			title: "Go platform modules", technology: "go", root: "."
+			title: "Go platform modules", kind: "library", domain: "backend", technology: "go", root: "."
 			watch_paths: [for m in baseModules {"\(m)/**"}]
 			depends_on:  ["go-root"]
 			resources:   {cpus: 4, memory_mb: 8192}
@@ -364,7 +364,8 @@ pipeline: {
 		}
 
 		backend: {
-			title: "Go backend (root module and apps)", technology: "go", root: "."
+			title: "Go backend (root module and apps)", kind: "service", domain: "backend", technology: "go", root: "."
+			uses: [{protocol: "ipc", target: "base", title: "Uses apimachinery, apiserver & unified storage"}]
 			watch_paths:      backendSources
 			depends_on:       ["go-root", "base"]
 			workspace_scope:  include: backendTrees
@@ -402,7 +403,7 @@ pipeline: {
 
 		for db, dbServices in databases {
 			"integration-\(db)": {
-				title: "Integration tests (\(db))", technology: "go", root: "."
+				title: "Integration tests (\(db))", kind: "verification", domain: "verification", technology: "go", root: "."
 				watch_paths:     list.Concat([backendSources, databaseSetup[db]])
 				depends_on:      ["go-root", "base"]
 				workspace_scope: include: backendTrees
@@ -426,7 +427,7 @@ pipeline: {
 
 		for name, p in packages {
 			(name): {
-				title: "\(name) package", technology: "typescript", root: "packages/\(p.dir)"
+				title: "\(name) package", kind: "library", domain: "packages", technology: "typescript", root: "packages/\(p.dir)"
 				depends_on: list.Concat([["js-root"], p.deps])
 				if p.typecheck {jobs: typecheck: tscJob & {_command: "yarn run typecheck"}}
 				jobs: lint: (frontendLint & {
@@ -483,7 +484,7 @@ pipeline: {
 
 		for name, p in plugins {
 			(name): {
-				title: "\(name) (decoupled plugin)", technology: "typescript", root: "public/app/plugins/datasource/\(p.dir)"
+				title: "\(name) (decoupled plugin)", kind: "addon", domain: "plugins", technology: "typescript", root: "public/app/plugins/datasource/\(p.dir)"
 				depends_on: list.Concat([["js-root"], p.deps])
 				jobs: typecheck: tscJob & {_command: "../../../../../helpers/plugin-typecheck.sh ."}
 				jobs: lint: (frontendLint & {
@@ -506,7 +507,8 @@ pipeline: {
 		}
 
 		frontend: {
-			title: "Frontend app", technology: "typescript", root: "."
+			title: "Frontend app", kind: "app", domain: "frontend", technology: "typescript", root: "."
+			uses: [{protocol: "http", target: "backend", title: "Queries dashboards, alerting & datasource APIs"}]
 			watch_paths: [
 				"public/app/{api,core,extensions,features,routes,store,types}/**",
 				"public/app/plugins/panel/**",
@@ -548,7 +550,9 @@ pipeline: {
 			record_resources: {cpus: 1.5, memory_mb: 3072}
 			test:             {command: "helpers/jest.sh . {shard_index} {shard_total} \(frontendTests) -- {targets}", timeout: "45m"}
 			target_scope: {
-				fallback: "none", select_in_job: true
+				fallback:         "none"
+				select_in_job:    true
+				incidental_reads: ["packages/**/*.test.{ts,tsx}"]
 				tests: [
 					"public/app/{api,core,extensions,features,routes,store,types}/**/*.test.{ts,tsx,js,jsx}",
 					"public/app/plugins/panel/**/*.test.{ts,tsx,js,jsx}",
@@ -586,7 +590,7 @@ pipeline: {
 		}
 
 		e2e: {
-			title: "End-to-end tests (Playwright)", root: "e2e-playwright"
+			title: "End-to-end tests (Playwright)", kind: "verification", domain: "verification", root: "e2e-playwright"
 			watch_paths: ["e2e-playwright/**", "playwright.config.ts", "playwright.storybook.config.ts", "helpers/playwright.sh", "helpers/e2e-build.sh"]
 			depends_on:  ["backend", "frontend"]
 			resources:   {cpus: 4, memory_mb: 8192}
