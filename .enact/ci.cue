@@ -26,7 +26,7 @@ pipeline: schema.#Pipeline & {
 	// CI's matrix jobs install the yarn workspace (yarn.lock) before the frontend's tasks.
 	toolchain: node: package_manager: "yarn"
 	ci: {
-		no_cache: {labels: ["no-cache", "showcase"], branch_prefixes: ["showcase/"]}
+		rerun: {labels: ["rerun", "showcase"], branch_prefixes: ["showcase/"]}
 		concurrency: max_parallel_jobs: 16
 		remote_cache: {
 			secrets: {bucket: "R2_BUCKET", access_key_id: "R2_ACCESS_KEY_ID", secret_access_key: "R2_SECRET_ACCESS_KEY"}
