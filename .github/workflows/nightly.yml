@@ -1233,7 +1233,7 @@ jobs:
       id: consolidate_reach
       run: |-
         cd "${GITHUB_WORKSPACE}"
-        if [ -n "$(find "$RUNNER_TEMP/enact-footprints" -name '*.bin' -print -quit 2>/dev/null)" ]; then
+        if [ -n "$(find "$RUNNER_TEMP/enact-footprints" -name '*.bin' -print -quit 2>/dev/null)" ] || [ "$GITHUB_EVENT_NAME" = push ]; then
           enact reach store pull || true
           enact reach store push --deltas "$RUNNER_TEMP/enact-footprints"
           echo "consolidated=true" >> "$GITHUB_OUTPUT"
