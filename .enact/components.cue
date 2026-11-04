@@ -110,6 +110,42 @@ let jestScope = {
 	}
 }
 
+// An e2e feature area: its paths select its playwright.config.ts suites' specs, as git
+// lists them (on a sparse checkout too), the overlay's untracked specs included.
+let e2eSuites = {
+	match: [...string]
+	_suites: [...string]
+	out: {
+		"match": match
+		command: "git ls-files --cached --others --exclude-standard -- " + strings.Join([for suite in _suites {"'e2e-playwright/\(suite)/*.spec.ts'"}], " ")
+	}
+}
+
+let e2eAreas = [
+	{match: ["pkg/services/ngalert/**", "apps/alerting/**", "public/app/features/alerting/**", "packages/grafana-alerting/**"], _suites: ["alerting-suite"]},
+	{
+		match: ["apps/dashboard/**", "pkg/services/dashboards/**", "pkg/registry/apis/dashboard/**", "public/app/features/dashboard/**", "public/app/features/dashboard-scene/**", "public/app/features/browse-dashboards/**"]
+		_suites: ["dashboards-suite", "dashboard-cujs", "dashboard-new-layouts"]
+	},
+	// Canvas has no suite of its own at the pin (playwright.config.ts names `canvas`, whose
+	// directory doesn't exist): its panel and feature run the panels suite.
+	{match: ["public/app/plugins/panel/**", "public/app/features/panel/**", "public/app/features/inspector/**", "public/app/features/visualization/**", "public/app/features/canvas/**"], _suites: ["panels-suite"]},
+	{match: ["public/app/features/explore/**", "public/app/features/correlations/**"], _suites: ["notebooks-suite"]},
+	{match: ["public/app/features/plugins/admin/**", "pkg/services/pluginsintegration/**"], _suites: ["plugin-catalog-suite"]},
+	{match: ["pkg/tsdb/azuremonitor/**", "public/app/plugins/datasource/azuremonitor/**"], _suites: ["plugin-e2e/azuremonitor"]},
+	{match: ["pkg/tsdb/graphite/**", "public/app/plugins/datasource/graphite/**"], _suites: ["plugin-e2e/graphite"]},
+	{
+		match: ["e2e-playwright/test-plugins/**", "packages/grafana-runtime/src/services/pluginExtensions/**", "public/app/features/plugins/extensions/**", "packages/grafana-e2e-selectors/**"]
+		_suites: ["test-plugins", "plugin-e2e/plugin-e2e-api-tests"]
+	},
+	{match: ["public/app/core/journeys/**"], _suites: ["journey-tracking"]},
+	{match: ["pkg/services/hooks/**", "public/app/features/admin/**"], _suites: ["diagnostics-suite"]},
+	{
+		match: [for feature in ["annotations", "commandPalette", "connections", "datasources", "expressions", "folders", "library-panels", "live", "logs", "manage-dashboards", "org", "playlist", "profile", "provisioning", "query", "scopes", "search", "serviceaccounts", "support-bundles", "teams", "templating", "transformers", "trails", "users", "variables"] {"public/app/features/\(feature)/**"}]
+		_suites: ["various-suite"]
+	},
+]
+
 let jestIgnore = {
 	match: [
 		"**/*.{md,mdx,scss,css,svg,png,jpg,gif}", "public/app/**/*.{html,txt}",
@@ -418,6 +454,9 @@ pipeline: {
 				watch_paths:     list.Concat([backendSources, databaseSetup[db]])
 				depends_on:      ["go-root", "base"]
 				workspace_scope: include: backendTrees
+				// Pure Go (CGO_ENABLED=0) against services enve.lock has for both Linux
+				// architectures, with enact and enve built for both: either pool runs it.
+				arch:            "any"
 				resources:       {cpus: [if db == "sqlite" {4}, 2][0], memory_mb: 8192}
 				shards:          [if db == "sqlite" {4}, 8][0]
 				if db == "sqlite" {
@@ -624,7 +663,17 @@ pipeline: {
 					tests:  ["e2e-playwright/cloud-plugins-suite/azure-monitor.spec.ts", "e2e-playwright/dashboards-search-suite/dashboards-search.spec.ts", "e2e-playwright/plugin-e2e/cloudmonitoring/cloudmonitoring.spec.ts", "e2e-playwright/plugin-e2e/loki/loki.spec.ts", "e2e-playwright/storybook/verify.spec.ts"]
 					reason: "Specs outside playwright.config.ts or skipped by --grep-invert @cloud-plugins (cloud-plugins-suite is @cloud-plugins; storybook runs under playwright.storybook.config.ts; dashboards-search-suite, cloudmonitoring, and loki have no project in playwright.config.ts)"
 				}]
-				rules: [{match: ["e2e-playwright/**/*.ts"], engine: "typescript"}, jestIgnore]
+				// A change whose every file lies in a feature area runs that area's suites
+				// (impl/08); any other file, shared server plumbing included, keeps the suite
+				// whole (`fallback: "all"`).
+				rules: list.Concat([[
+					{match: ["e2e-playwright/**/*.ts"], engine: "typescript"},
+					jestIgnore,
+					// Go and jest tests and stories build into no server or bundle a spec runs against.
+					{match: ["**/*_test.go", "**/*.test.{ts,tsx}", "**/*.stories.{ts,tsx}"], action: "ignore"},
+					// The harness every spec runs under.
+					{match: ["playwright.config.ts", "helpers/playwright.sh", "helpers/e2e-build.sh"], action: "full_component"},
+				], [for area in e2eAreas {(e2eSuites & area).out}]])
 			}
 		}
 

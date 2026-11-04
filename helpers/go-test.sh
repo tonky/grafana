@@ -101,6 +101,10 @@ case "${suite}" in
         ;;
     integration)
         db="${GRAFANA_TEST_DB:-sqlite}"
+        # enve.cue's PGVECTOR_TEST_DB names the postgres service's vector database, which only
+        # the postgres suite starts: elsewhere the pgvector tests (resource's shared vector
+        # store) would dial a server that isn't there instead of skipping.
+        [[ "${db}" == postgres ]] || unset PGVECTOR_TEST_DB
         run_re="${run_pattern:-^TestIntegration}"
         skip="$(docker_tests)"
         if [[ -n "${skip}" ]]; then

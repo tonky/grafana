@@ -764,6 +764,18 @@ jobs:
           docs/sources/setup-grafana/configure-grafana/feature-toggles/index.md
           devenv
           hack
+          e2e-playwright
+          playwright.config.ts
+          playwright.storybook.config.ts
+          public
+          packages
+          scripts
+          embed.go
+          Makefile
+          go.mod
+          go.sum
+          go.work
+          go.work.sum
     - name: Checkout Repository (sparse)
       if: ${{ steps.runner_caches.outputs.host == '' || steps.host_checkout.outcome == 'failure' }}
       uses: actions/checkout@v7
@@ -814,6 +826,18 @@ jobs:
           docs/sources/setup-grafana/configure-grafana/feature-toggles/index.md
           devenv
           hack
+          e2e-playwright
+          playwright.config.ts
+          playwright.storybook.config.ts
+          public
+          packages
+          scripts
+          embed.go
+          Makefile
+          go.mod
+          go.sum
+          go.work
+          go.work.sum
         sparse-checkout-cone-mode: "true"
         submodules: "false"
     - name: Restore enact Task CAS Cache
@@ -3013,6 +3037,7 @@ jobs:
         show-progress: "false"
         submodules: "false"
     - name: Restore Built Outputs (e2e:build)
+      id: outputs-e2e--build
       if: ${{ matrix.output_keys['e2e--build'] != '' }}
       continue-on-error: true
       uses: actions/cache/restore@v6
@@ -3025,6 +3050,13 @@ jobs:
           e2e-playwright/test-plugins/*/dist
           data/plugins-bundled
           .enact/state/outputs/e2e--build.key
+    - name: Require Built Outputs (e2e:build)
+      if: ${{ matrix.output_keys['e2e--build'] != '' && steps.outputs-e2e--build.outputs.cache-hit != 'true' }}
+      run: |-
+        echo "::error title=Built outputs not restored::e2e:build's outputs (key $OUTPUTS_KEY) are not in the cache build-outputs saved them to. Re-run the workflow: this entry's runner is sized for its own work, not for building them."
+        exit 1
+      env:
+        OUTPUTS_KEY: ${{ matrix.output_keys['e2e--build'] }}
     - name: Install committed enact & enve builds
       run: |
         # The repository's committed enact, enve and bubblewrap builds: bin/<os>-<arch>/ for this runner
