@@ -315,3 +315,44 @@ func TestFSTwoDotsInFileName(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []string{"test..png"}, files)
 }
+
+func TestLocalFS_FilesThroughSymlinkedDir(t *testing.T) {
+	plugins := t.TempDir()
+	pluginDir := filepath.Join(plugins, "plugin")
+	require.NoError(t, os.MkdirAll(filepath.Join(pluginDir, "bin"), 0o750))
+	require.NoError(t, createDummyTempFile(pluginDir, "plugin.json"))
+	require.NoError(t, createDummyTempFile(filepath.Join(pluginDir, "bin"), "tool"))
+	require.NoError(t, os.Symlink(filepath.Join("bin", "tool"), filepath.Join(pluginDir, "tool")))
+
+	// The plugin reached through a symlinked parent directory (testinfra links public/app/plugins).
+	linked := filepath.Join(t.TempDir(), "plugins")
+	require.NoError(t, os.Symlink(plugins, linked))
+	localFS := NewLocalFS(filepath.Join(linked, "plugin"))
+
+	files, err := localFS.Files()
+	require.NoError(t, err)
+	sort.Strings(files)
+	require.Equal(t, []string{filepath.Join("bin", "tool"), "plugin.json", "tool"}, files)
+
+	// A symlink out of the plugin directory is still refused.
+	outside := t.TempDir()
+	require.NoError(t, createDummyTempFile(outside, "secret"))
+	require.NoError(t, os.Symlink(filepath.Join(outside, "secret"), filepath.Join(pluginDir, "escape")))
+	_, err = localFS.Files()
+	require.ErrorContains(t, err, "not inside of plugin directory")
+}
+
+func TestLocalFS_FilesSkipNodeModules(t *testing.T) {
+	pluginDir := t.TempDir()
+	require.NoError(t, createDummyTempFile(pluginDir, "plugin.json"))
+	// pnpm links a workspace package's dependencies out of its directory.
+	store := t.TempDir()
+	require.NoError(t, createDummyTempFile(store, "index.js"))
+	require.NoError(t, os.MkdirAll(filepath.Join(pluginDir, "node_modules", "@emotion"), 0o750))
+	require.NoError(t, os.Symlink(store, filepath.Join(pluginDir, "node_modules", "@emotion", "css")))
+	require.NoError(t, createDummyTempFile(filepath.Join(pluginDir, "node_modules"), "dep.js"))
+
+	files, err := NewLocalFS(pluginDir).Files()
+	require.NoError(t, err)
+	require.Equal(t, []string{"plugin.json"}, files)
+}

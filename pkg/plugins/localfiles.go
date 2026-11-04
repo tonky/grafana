@@ -48,8 +48,14 @@ func (f LocalFS) fileIsAllowed(basePath string, absolutePath string, info os.Fil
 			return false, err
 		}
 
-		// verify that symlinked file is within plugin directory
-		p, err := filepath.Rel(basePath, symlinkPath)
+		// verify that symlinked file is within plugin directory. symlinkPath has every link
+		// resolved, so compare it with the base's real path: a plugin directory reached
+		// through a symlinked parent (or macOS's /var -> /private/var) is still the same directory.
+		realBasePath, err := filepath.EvalSymlinks(basePath)
+		if err != nil {
+			return false, err
+		}
+		p, err := filepath.Rel(realBasePath, symlinkPath)
 		if err != nil {
 			return false, err
 		}
@@ -89,6 +95,12 @@ func (f LocalFS) walkFunc(basePath string, acc map[string]struct{}) filepath.Wal
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
+		}
+		// A plugin's node_modules holds its build's dependencies, not plugin files (plugin
+		// discovery skips it too: sources.LocalSource). pnpm links them out of the plugin
+		// directory, into the workspace's node_modules/.pnpm.
+		if info.IsDir() && info.Name() == "node_modules" && path != basePath {
+			return filepath.SkipDir
 		}
 		ok, err := f.fileIsAllowed(basePath, path, info)
 		if err != nil {
