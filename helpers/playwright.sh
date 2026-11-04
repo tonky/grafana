@@ -76,6 +76,15 @@ require_built() {
     for path in bin/grafana public/build data/plugins-bundled; do
         [[ -e "${path}" ]] || missing+=("${path}")
     done
+    # yarn build also builds these standalone core plugins. Without their dist
+    # metadata Grafana advertises a legacy core:plugin module the bundle lacks.
+    local plugin artifact
+    for plugin in azuremonitor grafana-testdata-datasource graphite; do
+        for artifact in plugin.json module.js; do
+            path="public/app/plugins/datasource/${plugin}/dist/${artifact}"
+            [[ -f "${path}" ]] || missing+=("${path}")
+        done
+    done
     if [[ ${#missing[@]} -gt 0 ]]; then
         echo "playwright.sh: not built: ${missing[*]}; run e2e:build (helpers/e2e-build.sh) first" >&2
         return 1

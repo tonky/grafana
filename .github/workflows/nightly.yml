@@ -2221,6 +2221,7 @@ jobs:
         path: |-
           bin/grafana
           public/build
+          public/app/plugins/datasource/*/dist
           e2e-playwright/test-plugins/*/dist
           data/plugins-bundled
           .enact/state/outputs/e2e--build.key

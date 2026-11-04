@@ -617,7 +617,7 @@ pipeline: {
 				build: {
 					services: false, resources: {cpus: 4, memory_mb: 12288}
 					outputs: {
-						paths: ["bin/grafana", "public/build", "e2e-playwright/test-plugins/*/dist", "data/plugins-bundled"]
+						paths: ["bin/grafana", "public/build", "public/app/plugins/datasource/*/dist", "e2e-playwright/test-plugins/*/dist", "data/plugins-bundled"]
 						key:   ["*", ".yarn/**", "apps/**", "cue.mod/**", "kinds/**", "packages/**", "pkg/**", "public/**", "scripts/**", "e2e-playwright/test-plugins/**", "helpers/e2e-build.sh"]
 					}
 					tasks: [{command: "../helpers/e2e-build.sh", timeout: "40m"}]
