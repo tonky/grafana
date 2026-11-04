@@ -36,7 +36,10 @@ test.beforeEach(async ({ page }, testInfo) => {
 test.afterEach(async ({ page }, testInfo) => {
   if (testInfo.status !== testInfo.expectedStatus) {
     console.log(`[replay-diagnostic] failure URL: ${page.url()}`);
-    const text = await page.locator('body').innerText({ timeout: 2000 }).catch((error: Error) => error.message);
+    const text = await page
+      .locator('body')
+      .innerText({ timeout: 2000 })
+      .catch((error: Error) => error.message);
     console.log(`[replay-diagnostic] failure DOM text: ${text.slice(0, 12000)}`);
   }
 });
