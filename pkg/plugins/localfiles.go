@@ -48,8 +48,14 @@ func (f LocalFS) fileIsAllowed(basePath string, absolutePath string, info os.Fil
 			return false, err
 		}
 
-		// verify that symlinked file is within plugin directory
-		p, err := filepath.Rel(basePath, symlinkPath)
+		// verify that symlinked file is within plugin directory. symlinkPath has every link
+		// resolved, so compare it with the base's real path: a plugin directory reached
+		// through a symlinked parent (or macOS's /var -> /private/var) is still the same directory.
+		realBasePath, err := filepath.EvalSymlinks(basePath)
+		if err != nil {
+			return false, err
+		}
+		p, err := filepath.Rel(realBasePath, symlinkPath)
 		if err != nil {
 			return false, err
 		}
