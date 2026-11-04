@@ -416,7 +416,7 @@ pipeline: {
 			watch_paths:      backendSources
 			depends_on:       ["go-root", "base"]
 			workspace_scope:  include: backendTrees
-			resources:        {cpus: 3, memory_mb: 10240}
+			resources:        {cpus: 2, memory_mb: 4096}
 			shards:           8
 			recorder:         "trace"
 			record_resources: {cpus: 1.5, memory_mb: 3072}
@@ -457,7 +457,7 @@ pipeline: {
 				// Pure Go (CGO_ENABLED=0) against services enve.lock has for both Linux
 				// architectures, with enact and enve built for both: either pool runs it.
 				arch:            "any"
-				resources:       {cpus: [if db == "sqlite" {4}, 2][0], memory_mb: 8192}
+				resources:       {cpus: [if db == "sqlite" {4}, 2][0], memory_mb: [if db == "sqlite" {8192}, 4096][0]}
 				shards:          [if db == "sqlite" {4}, 8][0]
 				if db == "sqlite" {
 					recorder:         "trace"
