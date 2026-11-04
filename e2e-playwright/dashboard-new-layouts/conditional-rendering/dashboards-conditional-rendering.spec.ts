@@ -9,6 +9,38 @@ import dashboardSeveralRulesJSON from './fixtures/dashboard-several-rules.json';
 import dashboardTimerangeJSON from './fixtures/dashboard-timerange.json';
 import dashboardVariableValueJSON from './fixtures/dashboard-variable-value.json';
 
+// Temporary old-pin replay diagnostics: keep build inputs and test assertions unchanged.
+test.beforeEach(async ({ page }, testInfo) => {
+  let remaining = 20;
+  const report = (kind: string, message: string) => {
+    if (remaining-- > 0) {
+      console.log(`[replay-diagnostic] ${testInfo.title} ${kind}: ${message.slice(0, 2000)}`);
+    }
+  };
+  page.on('pageerror', (error) => report('pageerror', error.message));
+  page.on('requestfailed', (request) =>
+    report('requestfailed', `${request.method()} ${request.url()} ${request.failure()?.errorText}`)
+  );
+  page.on('response', (response) => {
+    if (response.status() >= 400) {
+      report('http-error', `${response.status()} ${response.url()}`);
+    }
+  });
+  page.on('console', (message) => {
+    if (message.type() === 'error') {
+      report('console-error', message.text());
+    }
+  });
+});
+
+test.afterEach(async ({ page }, testInfo) => {
+  if (testInfo.status !== testInfo.expectedStatus) {
+    console.log(`[replay-diagnostic] failure URL: ${page.url()}`);
+    const text = await page.locator('body').innerText({ timeout: 2000 }).catch((error: Error) => error.message);
+    console.log(`[replay-diagnostic] failure DOM text: ${text.slice(0, 12000)}`);
+  }
+});
+
 const HIDDEN_WRAPPER_SELECTOR = '.dashboard-visible-hidden-element';
 const HIDDEN_ICON_TEST_ID = 'icon-eye-slash';
 
