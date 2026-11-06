@@ -2,8 +2,8 @@
   "platforms": {
     "aarch64-darwin": {
       "binding": {
-        "environment_sha256": "9414631f5076ad03cf8c629ba68891b77f633316e53f726659e1a4fdee96e93b",
-        "inventory_sha256": "fac24f6a1a9ce65cee4899306eb5ae90cf776c747d914a55fb88c5648cca7f3f",
+        "environment_sha256": "fc3799e81ba332d4b4f032b4686a3533f15a8ae520405ae7b5d691deecf7c34e",
+        "inventory_sha256": "39d24d0cdc3ce13a9344d5f92559d379a0a6aecd74e9fbddf9fbf3236399683c",
         "profile": null,
         "version": 2
       },
@@ -963,6 +963,9 @@
           ]
         },
         {
+          "hash_name": "drpfgdrfjmyf5vjr11sypb6khcns269g-playwright-browsers-1.56.1"
+        },
+        {
           "hash_name": "dv3gqilrzcdl2w97kmsn9pkq9ds2k2dn-libpsl-0.21.5",
           "nar_hash": "sha256:17ird6jhxh759qbw5lqjzlmdbnkcmr2kypbr236kxs90iyv36w9f",
           "nar_size": 158992,
@@ -1814,9 +1817,6 @@
           ]
         },
         {
-          "hash_name": "yvgwvfr68vq3sh1wivrzj3rb94riwsg6-playwright-browsers-1.56.1"
-        },
-        {
           "hash_name": "zdslvbbhrpilsyqvcwxywqrwla35h68p-ncurses-6.6",
           "nar_hash": "sha256:02wgiilkl8r1866zynbwg81w044xmgy7axxvim3n6sihxv5dy4a6",
           "nar_size": 3859544,
@@ -2557,7 +2557,7 @@
           }
         },
         "lockSourcePath": "enve.lock",
-        "projectSha256": "b3301eaa307e1c32a91ca3ac86092b90de6a9bbe09ac413e24e0ba156646ee4b"
+        "projectSha256": "72fb7785749e7e2362f290af03378e2b88bf1f3aa81cbb146f437c20d6eaa841"
       },
       "environment": {
         "CGO_ENABLED": "0",
@@ -2569,13 +2569,13 @@
         "ENVE_SERVICE_POSTGRES_HOST": "127.0.0.1",
         "ENVE_SERVICE_POSTGRES_PORT": "5442",
         "ENVE_SERVICE_POSTGRES_URL": "postgresql://postgres@127.0.0.1:5442/postgres",
-        "FONTCONFIG_FILE": "$ENVE_STORE_DIR/yvgwvfr68vq3sh1wivrzj3rb94riwsg6-playwright-browsers-1.56.1/fonts.conf",
+        "FONTCONFIG_FILE": "$ENVE_STORE_DIR/drpfgdrfjmyf5vjr11sypb6khcns269g-playwright-browsers-1.56.1/fonts.conf",
         "GOTOOLCHAIN": "local",
         "MYSQL_HOST": "127.0.0.1",
         "MYSQL_PORT": "${ENVE_SERVICE_MYSQL_PORT}",
         "MYSQL_URL": "mysql://root@127.0.0.1:3316",
         "PGVECTOR_TEST_DB": "host=127.0.0.1 port=${ENVE_SERVICE_POSTGRES_PORT} dbname=grafana_vectors user=grafanatest password=grafanatest sslmode=disable",
-        "PLAYWRIGHT_BROWSERS_PATH": "$ENVE_STORE_DIR/yvgwvfr68vq3sh1wivrzj3rb94riwsg6-playwright-browsers-1.56.1",
+        "PLAYWRIGHT_BROWSERS_PATH": "$ENVE_STORE_DIR/drpfgdrfjmyf5vjr11sypb6khcns269g-playwright-browsers-1.56.1",
         "PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS": "1",
         "PNPM_MANAGE_PACKAGE_MANAGER_VERSIONS": "false",
         "POSTGRES_HOST": "127.0.0.1",
@@ -2851,7 +2851,7 @@
             "a8r42jvrfindh7hcbg535mab0kylnfr6-bash-interactive-5.3p20",
             "n0wkyhi2v0b89pd9f4663v0lmjmba8p0-unzip-6.0"
           ],
-          "closure": "yvgwvfr68vq3sh1wivrzj3rb94riwsg6-playwright-browsers-1.56.1",
+          "closure": "drpfgdrfjmyf5vjr11sypb6khcns269g-playwright-browsers-1.56.1",
           "version": "1.56.1"
         },
         "pnpm": {
@@ -2978,8 +2978,8 @@
     },
     "aarch64-linux": {
       "binding": {
-        "environment_sha256": "9414631f5076ad03cf8c629ba68891b77f633316e53f726659e1a4fdee96e93b",
-        "inventory_sha256": "7e6a809d206fae8aacc9ba82f5bd0fd938a9d0a61eab1a6204f7ce55bb4166d3",
+        "environment_sha256": "fc3799e81ba332d4b4f032b4686a3533f15a8ae520405ae7b5d691deecf7c34e",
+        "inventory_sha256": "07bae1b4dfdcb2cc805f2695d99e36c7e745e6c3d7e3f4402358362970223340",
         "profile": null,
         "version": 2
       },
@@ -3782,9 +3782,6 @@
             "nhphqkv18x8fpf3flz0bsm1h554pawn7-glibc-2.44-57",
             "nhrkwapk0zzzmc8x1f2k24qpyz9gy5qb-gcc-16.2.0-lib"
           ]
-        },
-        {
-          "hash_name": "951iz5n85908m65m15j9k1c18wvkspvc-playwright-browsers-1.56.1"
         },
         {
           "hash_name": "96vqmg5n3gmys9jrwh91fqvwfi188x7w-python3-3.14.8-env",
@@ -5733,6 +5730,9 @@
           ]
         },
         {
+          "hash_name": "zcwc9kq5sk6mzxxqsbiivdsbinbd47vw-playwright-browsers-1.56.1"
+        },
+        {
           "hash_name": "zgmaizk43g99ihidpl181wbf5cfgkj3p-glibc-2.44-57-bin",
           "nar_hash": "sha256:0cixlzpn2k5j2nl1say1k36fz3ggrzd2phf0y2rbj628qqkmg0xf",
           "nar_size": 3213112,
@@ -7207,7 +7207,7 @@
           }
         },
         "lockSourcePath": "enve.lock",
-        "projectSha256": "b3301eaa307e1c32a91ca3ac86092b90de6a9bbe09ac413e24e0ba156646ee4b"
+        "projectSha256": "72fb7785749e7e2362f290af03378e2b88bf1f3aa81cbb146f437c20d6eaa841"
       },
       "environment": {
         "CGO_ENABLED": "0",
@@ -7219,13 +7219,13 @@
         "ENVE_SERVICE_POSTGRES_HOST": "127.0.0.1",
         "ENVE_SERVICE_POSTGRES_PORT": "5442",
         "ENVE_SERVICE_POSTGRES_URL": "postgresql://postgres@127.0.0.1:5442/postgres",
-        "FONTCONFIG_FILE": "$ENVE_STORE_DIR/951iz5n85908m65m15j9k1c18wvkspvc-playwright-browsers-1.56.1/fonts.conf",
+        "FONTCONFIG_FILE": "$ENVE_STORE_DIR/zcwc9kq5sk6mzxxqsbiivdsbinbd47vw-playwright-browsers-1.56.1/fonts.conf",
         "GOTOOLCHAIN": "local",
         "MYSQL_HOST": "127.0.0.1",
         "MYSQL_PORT": "${ENVE_SERVICE_MYSQL_PORT}",
         "MYSQL_URL": "mysql://root@127.0.0.1:3316",
         "PGVECTOR_TEST_DB": "host=127.0.0.1 port=${ENVE_SERVICE_POSTGRES_PORT} dbname=grafana_vectors user=grafanatest password=grafanatest sslmode=disable",
-        "PLAYWRIGHT_BROWSERS_PATH": "$ENVE_STORE_DIR/951iz5n85908m65m15j9k1c18wvkspvc-playwright-browsers-1.56.1",
+        "PLAYWRIGHT_BROWSERS_PATH": "$ENVE_STORE_DIR/zcwc9kq5sk6mzxxqsbiivdsbinbd47vw-playwright-browsers-1.56.1",
         "PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS": "1",
         "PNPM_MANAGE_PACKAGE_MANAGER_VERSIONS": "false",
         "POSTGRES_HOST": "127.0.0.1",
@@ -7543,7 +7543,7 @@
             "yggih4x107bxf2vl162yxy1ypm9jhhwm-liberation-fonts-2.1.5",
             "zgmaizk43g99ihidpl181wbf5cfgkj3p-glibc-2.44-57-bin"
           ],
-          "closure": "951iz5n85908m65m15j9k1c18wvkspvc-playwright-browsers-1.56.1",
+          "closure": "zcwc9kq5sk6mzxxqsbiivdsbinbd47vw-playwright-browsers-1.56.1",
           "version": "1.56.1"
         },
         "pnpm": {
@@ -7670,8 +7670,8 @@
     },
     "x86_64-linux": {
       "binding": {
-        "environment_sha256": "9414631f5076ad03cf8c629ba68891b77f633316e53f726659e1a4fdee96e93b",
-        "inventory_sha256": "9a84840d6f89ff8ffef77f641c7fac960e663b747b3e79ddb5e475c4369a0d52",
+        "environment_sha256": "fc3799e81ba332d4b4f032b4686a3533f15a8ae520405ae7b5d691deecf7c34e",
+        "inventory_sha256": "d80bc66ed00842ef5484995603df36eda812d35694a39e6333603f0f6bd4eabb",
         "profile": null,
         "version": 2
       },
@@ -7944,9 +7944,6 @@
             "7a2cjhcgzyym5zaz6m4fksw47qvm150w-gcc-16.2.0-lib",
             "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57"
           ]
-        },
-        {
-          "hash_name": "3cyz69qhssxnfflj5l3q391hh50b98rw-playwright-browsers-1.56.1"
         },
         {
           "hash_name": "3hk1ngk4hsk4s53v2s7sg096irdania4-acl-2.4.0",
@@ -8396,6 +8393,9 @@
             "pfds9zw10xksh0zr7qplqg1lj9avs2gz-libffi-3.8.0",
             "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57"
           ]
+        },
+        {
+          "hash_name": "8y1czqdkzc556qxdziqvij27hhgww54b-playwright-browsers-1.56.1"
         },
         {
           "hash_name": "90slnrlyxdl8yamw602y236fa8jcyxwd-oniguruma-6.9.10-lib",
@@ -11909,7 +11909,7 @@
           }
         },
         "lockSourcePath": "enve.lock",
-        "projectSha256": "b3301eaa307e1c32a91ca3ac86092b90de6a9bbe09ac413e24e0ba156646ee4b"
+        "projectSha256": "72fb7785749e7e2362f290af03378e2b88bf1f3aa81cbb146f437c20d6eaa841"
       },
       "environment": {
         "CGO_ENABLED": "0",
@@ -11921,13 +11921,13 @@
         "ENVE_SERVICE_POSTGRES_HOST": "127.0.0.1",
         "ENVE_SERVICE_POSTGRES_PORT": "5442",
         "ENVE_SERVICE_POSTGRES_URL": "postgresql://postgres@127.0.0.1:5442/postgres",
-        "FONTCONFIG_FILE": "$ENVE_STORE_DIR/3cyz69qhssxnfflj5l3q391hh50b98rw-playwright-browsers-1.56.1/fonts.conf",
+        "FONTCONFIG_FILE": "$ENVE_STORE_DIR/8y1czqdkzc556qxdziqvij27hhgww54b-playwright-browsers-1.56.1/fonts.conf",
         "GOTOOLCHAIN": "local",
         "MYSQL_HOST": "127.0.0.1",
         "MYSQL_PORT": "${ENVE_SERVICE_MYSQL_PORT}",
         "MYSQL_URL": "mysql://root@127.0.0.1:3316",
         "PGVECTOR_TEST_DB": "host=127.0.0.1 port=${ENVE_SERVICE_POSTGRES_PORT} dbname=grafana_vectors user=grafanatest password=grafanatest sslmode=disable",
-        "PLAYWRIGHT_BROWSERS_PATH": "$ENVE_STORE_DIR/3cyz69qhssxnfflj5l3q391hh50b98rw-playwright-browsers-1.56.1",
+        "PLAYWRIGHT_BROWSERS_PATH": "$ENVE_STORE_DIR/8y1czqdkzc556qxdziqvij27hhgww54b-playwright-browsers-1.56.1",
         "PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS": "1",
         "PNPM_MANAGE_PACKAGE_MANAGER_VERSIONS": "false",
         "POSTGRES_HOST": "127.0.0.1",
@@ -12245,7 +12245,7 @@
             "xpaz3fi6ibqxb9sla4gjlp0c82v566y8-gcc-16.2.0",
             "zwyq3fbja6an15mcv9jvfz0fm8d7q64v-nspr-4.40-dev"
           ],
-          "closure": "3cyz69qhssxnfflj5l3q391hh50b98rw-playwright-browsers-1.56.1",
+          "closure": "8y1czqdkzc556qxdziqvij27hhgww54b-playwright-browsers-1.56.1",
           "version": "1.56.1"
         },
         "pnpm": {

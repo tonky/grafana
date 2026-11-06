@@ -27,6 +27,9 @@ shift 3
 module="$(awk '$1 == "module" {print $2; exit}' go.mod)"
 packages=()
 tests=()
+# Packages a target names whole (an import path, a _test.go file): they run every test. A
+# package named only through `<dir>::<Test>` targets runs those tests alone.
+whole=()
 if [[ $# -gt 0 ]]; then
     while IFS= read -r target; do
         case "${target}" in
@@ -40,9 +43,11 @@ if [[ $# -gt 0 ]]; then
                 ;;
             *.go)
                 dir="$(dirname "${target}")"
-                [[ "${dir}" == "." ]] && packages+=("${module}") || packages+=("${module}/${dir}")
+                [[ "${dir}" == "." ]] && pkg="${module}" || pkg="${module}/${dir}"
+                packages+=("${pkg}")
+                whole+=("${pkg}")
                 ;;
-            *) packages+=("${target}") ;;
+            *) packages+=("${target}"); whole+=("${target}") ;;
         esac
     done < <(for t in "$@"; do case "${t}" in *.go) repo_paths "${t}" ;; *) echo "${t}" ;; esac; done | sort -u)
 else
@@ -96,6 +101,25 @@ case "${suite}" in
     base | backend)
         extra=()
         [[ -n "${ENACT_FOOTPRINT_DIR:-}" || -n "${run_pattern}" ]] && extra+=(-count=1)
+        # The recall harness reads each test's own outcome (`--- PASS: TestX`).
+        [[ -n "${ENACT_TEST_VERBOSE:-}" ]] && extra+=(-v)
+        if [[ -n "${run_pattern}" && ${#whole[@]} -gt 0 ]]; then
+            # A shard with both kinds of target: one `-run` over every package would run
+            # only the named tests of a package selected whole (a recall escape: the
+            # planner chose the package, its other tests never ran).
+            # shellcheck disable=SC2207
+            whole=($(printf '%s\n' "${whole[@]}" | sort -u))
+            partial=()
+            for pkg in "${packages[@]}"; do
+                printf '%s\n' "${whole[@]}" | grep -qxF -- "${pkg}" || partial+=("${pkg}")
+            done
+            status=0
+            go test -vet=off -short -timeout=30m "${extra[@]}" "${whole[@]}" || status=$?
+            if [[ ${#partial[@]} -gt 0 ]]; then
+                go test -vet=off -short -timeout=30m "${extra[@]}" -run "${run_pattern}" "${partial[@]}" || status=$?
+            fi
+            exit "${status}"
+        fi
         [[ -n "${run_pattern}" ]] && extra+=(-run "${run_pattern}")
         exec go test -vet=off -short -timeout=30m ${extra[@]+"${extra[@]}"} "${packages[@]}"
         ;;
@@ -114,7 +138,7 @@ case "${suite}" in
             skip='^$'
         fi
         if [[ "${db}" == sqlite ]]; then
-            exec go test -vet=off -count=1 -timeout=12m -run "${run_re}" -skip "${skip}" "${packages[@]}"
+            exec go test -vet=off -count=1 ${ENACT_TEST_VERBOSE:+-v} -timeout=12m -run "${run_re}" -skip "${skip}" "${packages[@]}"
         fi
         # Compile first, as upstream does, so the turn at the database is the tests' alone.
         go test -vet=off -run='^$' "${packages[@]}" >/dev/null
@@ -133,7 +157,7 @@ case "${suite}" in
         exec 9>>"${locks}/${db}-tests-${port}.flock"
         flock 9
         # Held by this script alone: a process the tests leave running doesn't keep it.
-        go test -vet=off -count=1 -p=1 -timeout=12m -run "${run_re}" -skip "${skip}" "${packages[@]}" 9>&-
+        go test -vet=off -count=1 -p=1 ${ENACT_TEST_VERBOSE:+-v} -timeout=12m -run "${run_re}" -skip "${skip}" "${packages[@]}" 9>&-
         ;;
     *)
         echo "unknown suite: ${suite}" >&2
