@@ -26,21 +26,20 @@ let pnpm = schema.#ArchiveBuildSpec & {
 }
 
 // Toolchain from Makefile and GitHub Actions: Go from go.mod (CGO off), Node from .nvmrc
-// (major 24: the nixpkgs snapshot with go 1.27.3 ships node 24.21.0, not .nvmrc's 24.22.1),
-// pnpm above, PostgreSQL 17 + pgvector, MySQL 8.4 LTS (nixpkgs dropped mysql80 before
-// go 1.27), and Playwright's headless shell from the store. Checked by
+// (major 26), pnpm above, PostgreSQL 17 + pgvector, MySQL 8.4 LTS (nixpkgs dropped mysql80
+// before go 1.27), and Playwright's headless shell from the store. Checked by
 // tests/conformance/env_conformance.rs.
 profiles: dev: schema.#Profile & {
 	name: "grafana-dev"
 	tools: [
 		pkgs.go & {version: "1.27.3"},
-		pkgs.nodejs & {version: "24"},
+		pkgs.nodejs & {version: "26"},
 		pnpm,
 		pkgs.git, "gnumake", "bash", "coreutils", "findutils", "gnugrep", "gnused", "gawk", "diffutils",
-		"flock", "curl", "jq", "python3", "shellcheck",
+		"flock", "curl", "jq", "python3", "shellcheck", "unzip",
 		pkgs.postgresql_17,
 		pkgs.mysql & {version: "8.4"},
-		pkgs.#PlaywrightBrowsers & {version: "1.56.1", features: ["chromium-headless-shell"]},
+		pkgs.#PlaywrightBrowsers & {version: "1.64.1", features: ["chromium-headless-shell"]},
 	]
 	services: {
 		// devenv/docker/blocks/postgres_tests + pgvector; port 5442 default, per-run $PORT in enact.

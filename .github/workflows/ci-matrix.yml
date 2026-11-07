@@ -6,19 +6,23 @@ on:
       matrix:
         type: string
         required: true
+      seed_caches:
+        type: string
+        required: false
       warm_reach:
         type: string
         required: false
+permissions:
+  contents: read
 env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
   COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
-  ENACT_OUTPUTS_PRODUCERS: "{\"e2e--build\":{\"job\":\"e2e:build\",\"paths\":\"bin/grafana\\npublic/build\\npublic/app/plugins/datasource/*/dist\\ne2e-playwright/test-plugins/*/dist\\ndata/plugins-bundled\\n.enact/state/outputs/e2e--build.key\"}}"
   ENACT_REMOTE_SAVE_EVENT: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
   ENACT_SAVE_EVENT: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
   ENVE_CACHE_PUBLIC_KEY: enve-r2-1:ckHPTeWVef6mba+1AwWHjKYCsUWKPfP9IXPm5YXNoHg=
   ENVE_SERVICE_GID: "1000"
   ENVE_SERVICE_UID: "1000"
-  ENVE_SUBSTITUTERS: https://pub-30fd937eb7634039b8c49d49bfec91a9.r2.dev,https://cache.nixos.org
+  ENVE_SUBSTITUTERS: https://cache.tonky.dev,https://cache.nixos.org
   ENVE_TRUSTED_PUBLIC_KEYS: enve-r2-1:ckHPTeWVef6mba+1AwWHjKYCsUWKPfP9IXPm5YXNoHg=
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   GOCACHE: /tmp/go-build
@@ -27,11 +31,16 @@ env:
   XDG_CACHE_HOME: /tmp/.cache
 jobs:
   entry:
-    name: ${{ matrix.component }}
+    name: ${{ matrix.component }}${{ matrix.env.ENACT_SCHEDULING_HINT }}
+    env:
+      ENACT_ENVIRONMENT_FILE: ${{ matrix.environment_file || '' }}
+      ENACT_HAS_SIGNING_KEY: ${{ (secrets.ENVE_CACHE_SECRET_KEY != '' || secrets.NIX_SECRET_KEY != '') && 'true' || 'false' }}
+    permissions:
+      actions: read
+      contents: read
     if: ${{ inputs.matrix != '{"include":[]}' && inputs.matrix != '[]' && inputs.matrix != '' }}
     strategy:
       fail-fast: false
-      max-parallel: 16
       matrix: ${{ fromJson(inputs.matrix) }}
     runs-on: ${{ matrix.runs_on }}
     timeout-minutes: 60
@@ -53,6 +62,231 @@ jobs:
         echo "ENACT_HOST_CACHE=$host" >> "$GITHUB_ENV"
         printf 'host=%s\n' "$host" >> "$GITHUB_OUTPUT"
         printf 'Host cache: %s\n' "${host:-none}"
+    - name: Checkout Repository (sparse) from the Host Mirror
+      id: host_checkout
+      if: ${{ steps.runner_caches.outputs.host != '' }}
+      continue-on-error: true
+      run: |
+        set -euo pipefail
+        url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+        mirror="$ENACT_GIT_MIRROR"
+        export GIT_CONFIG_COUNT=2
+        export GIT_CONFIG_KEY_0=safe.directory
+        export GIT_CONFIG_VALUE_0="$GITHUB_WORKSPACE"
+        export GIT_CONFIG_KEY_1=safe.directory
+        export GIT_CONFIG_VALUE_1="$mirror"
+        header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$ENACT_GIT_TOKEN" | base64 | tr -d '\n')"
+        base_ref="${GITHUB_BASE_REF:-${ENACT_BASE_REF:-}}"
+        depth="${ENACT_HOST_FETCH_DEPTH:-50}"
+        fetch_args=(--no-tags)
+        if [ "$depth" != "0" ]; then
+            fetch_args+=("--depth=$depth")
+        fi
+        refs=()
+        case "${GITHUB_REF:-}" in
+            refs/heads/*|refs/pull/*|refs/tags/*) refs+=("+$GITHUB_REF:$GITHUB_REF") ;;
+        esac
+        if [ -n "$base_ref" ] && [ "refs/heads/$base_ref" != "${GITHUB_REF:-}" ]; then
+            refs+=("+refs/heads/$base_ref:refs/heads/$base_ref")
+        fi
+        (
+            flock 9
+            if [ ! -f "$mirror/HEAD" ]; then
+                git init -q --bare "$mirror"
+                git -C "$mirror" config uploadpack.allowAnySHA1InWant true
+                git -C "$mirror" config gc.auto 0
+            fi
+            ref_current=""
+            case "${GITHUB_REF:-}" in
+                refs/heads/*|refs/pull/*|refs/tags/*) ref_current=$(git -C "$mirror" rev-parse --verify -q "$GITHUB_REF^{commit}" 2>/dev/null || true) ;;
+                *) ref_current="$GITHUB_SHA" ;;
+            esac
+            base_missing=0
+            if [ -n "$base_ref" ] && ! git -C "$mirror" rev-parse --verify -q "refs/heads/$base_ref^{commit}" >/dev/null 2>&1; then
+                base_missing=1
+            fi
+            if [ -z "$(find "$mirror/HEAD" -mmin -1 2>/dev/null || true)" ] || [ "$ref_current" != "$GITHUB_SHA" ] || [ "$base_missing" = 1 ] || ! git -C "$mirror" cat-file -e "$GITHUB_SHA^{commit}" 2>/dev/null; then
+                if [ "${#refs[@]}" -gt 0 ]; then
+                    git -C "$mirror" -c "http.extraheader=$header" fetch -q "${fetch_args[@]}" "$url" "${refs[@]}" \
+                        || git -C "$mirror" -c "http.extraheader=$header" fetch -q "${fetch_args[@]}" "$url" "$GITHUB_SHA"
+                else
+                    git -C "$mirror" -c "http.extraheader=$header" fetch -q "${fetch_args[@]}" "$url" "$GITHUB_SHA"
+                fi
+                if ! git -C "$mirror" cat-file -e "$GITHUB_SHA^{commit}" 2>/dev/null; then
+                    git -C "$mirror" -c "http.extraheader=$header" fetch -q "${fetch_args[@]}" "$url" "$GITHUB_SHA"
+                fi
+            fi
+            touch "$mirror" "$mirror/HEAD" 2>/dev/null || true
+        ) 9>"$mirror.lock"
+        cd "$GITHUB_WORKSPACE"
+        trap 'rm -rf "$GITHUB_WORKSPACE/.git"' ERR
+        find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+        git init -q .
+        echo "$mirror/objects" > .git/objects/info/alternates
+        [ ! -f "$mirror/shallow" ] || cp "$mirror/shallow" .git/shallow
+        git remote add origin "$url"
+        git config --local "http.$GITHUB_SERVER_URL/.extraheader" "$header"
+        git config --local gc.auto 0
+        mirror_branches=()
+        case "${GITHUB_REF:-}" in
+            refs/heads/*) mirror_branches+=("${GITHUB_REF#refs/heads/}") ;;
+        esac
+        if [ -n "$base_ref" ] && [ "refs/heads/$base_ref" != "${GITHUB_REF:-}" ]; then
+            mirror_branches+=("$base_ref")
+        fi
+        if [ "${#mirror_branches[@]}" -gt 0 ]; then
+            for ref_branch in "${mirror_branches[@]}"; do
+                ref_sha=$(git -C "$mirror" rev-parse --verify -q "refs/heads/$ref_branch^{commit}" 2>/dev/null || true)
+                if [ -n "$ref_sha" ]; then
+                    git update-ref "refs/remotes/origin/$ref_branch" "$ref_sha"
+                fi
+            done
+        fi
+        if [ -n "${ENACT_SPARSE_CONE:-}" ]; then
+            raw_cone=()
+            while IFS= read -r entry; do
+                entry="${entry#"${entry%%[![:space:]]*}"}"
+                entry="${entry%"${entry##*[![:space:]]}"}"
+                [ -n "$entry" ] && raw_cone+=("$entry")
+            done <<<"$ENACT_SPARSE_CONE"
+            cone=()
+            if [ "${#raw_cone[@]}" -gt 0 ]; then
+                for entry in "${raw_cone[@]}"; do
+                    case "$entry" in
+                        */.enact-direct-files)
+                            cone+=("$entry")
+                            ;;
+                        *)
+                            kind=$(git cat-file -t "$GITHUB_SHA:$entry" 2>/dev/null || true)
+                            if [ "$kind" = "blob" ]; then
+                                case "$entry" in
+                                    */*) cone+=("${entry%/*}/.enact-direct-files") ;;
+                                esac
+                            else
+                                cone+=("$entry")
+                            fi
+                            ;;
+                    esac
+                done
+            fi
+            if [ "${#cone[@]}" -gt 0 ]; then
+                git sparse-checkout set --cone "${cone[@]}"
+            fi
+        fi
+        case "${GITHUB_REF:-}" in
+            refs/heads/*) git checkout -q --force -B "${GITHUB_REF#refs/heads/}" "$GITHUB_SHA" ;;
+            *) git checkout -q --force --detach "$GITHUB_SHA" ;;
+        esac
+        git log -1 --format='Checked out %H through the host mirror'
+      env:
+        ENACT_GIT_TOKEN: ${{ github.token }}
+        ENACT_SPARSE_CONE: ${{ matrix.sparse_checkout }}
+    - name: Checkout Repository (sparse)
+      id: sparse_checkout
+      if: ${{ matrix.sparse_checkout != '' && (steps.runner_caches.outputs.host == '' || steps.host_checkout.outcome == 'failure') }}
+      run: |
+        set -euo pipefail
+        url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+        export GIT_CONFIG_COUNT=1
+        export GIT_CONFIG_KEY_0=safe.directory
+        export GIT_CONFIG_VALUE_0="$GITHUB_WORKSPACE"
+        header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$ENACT_GIT_TOKEN" | base64 | tr -d '\n')"
+        cd "$GITHUB_WORKSPACE"
+        # shellcheck disable=SC2015
+        find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+        git init -q .
+        git remote add origin "$url"
+        git config --local "http.$GITHUB_SERVER_URL/.extraheader" "$header"
+        git config --local protocol.version 2
+        git config --local fetch.parallel 0
+        git config --local checkout.workers 0
+        git config --local index.threads 0
+        git config --local advice.detachedHead false
+        git config --local gc.auto 0
+        cone=()
+        while IFS= read -r entry; do
+            entry="${entry#"${entry%%[![:space:]]*}"}"
+            entry="${entry%"${entry##*[![:space:]]}"}"
+            [ -n "$entry" ] && cone+=("$entry")
+        done <<<"${ENACT_SPARSE_CONE:-}"
+        depth="${ENACT_FETCH_DEPTH:-1}"
+        fetch_args=(--no-tags --no-recurse-submodules)
+        if [ "$depth" != "0" ]; then
+            fetch_args+=("--depth=$depth")
+        fi
+        narrow_cone=0
+        if [ "${#cone[@]}" -gt 0 ] && [ "${#cone[@]}" -le 8 ]; then
+            narrow_cone=1
+            for entry in "${cone[@]}"; do
+                case "$entry" in
+                    . | ./ | .. | ../*)
+                        narrow_cone=0
+                        break
+                        ;;
+                    .* | cue.mod | cue.mod/* | bin | bin/* | */*)
+                        ;;
+                    *)
+                        narrow_cone=0
+                        break
+                        ;;
+                esac
+            done
+        fi
+        if [ "$narrow_cone" = 1 ]; then
+            fetch_args+=(--filter=blob:none)
+        fi
+        git fetch -q "${fetch_args[@]}" origin "$GITHUB_SHA" 2>/dev/null \
+            || git fetch -q "${fetch_args[@]}" origin "$GITHUB_REF"
+        if [ "${#cone[@]}" -gt 0 ]; then
+            normalized=()
+            for entry in "${cone[@]}"; do
+                case "$entry" in
+                    */.enact-direct-files)
+                        normalized+=("$entry")
+                        ;;
+                    *)
+                        kind=$(git cat-file -t "$GITHUB_SHA:$entry" 2>/dev/null || true)
+                        if [ "$kind" = "blob" ]; then
+                            case "$entry" in
+                                */*) normalized+=("${entry%/*}/.enact-direct-files") ;;
+                            esac
+                        else
+                            normalized+=("$entry")
+                        fi
+                        ;;
+                esac
+            done
+            if [ "${#normalized[@]}" -gt 0 ]; then
+                git sparse-checkout set --cone "${normalized[@]}"
+            fi
+        fi
+        case "$GITHUB_REF" in
+            refs/heads/*) git checkout -q --force -B "${GITHUB_REF#refs/heads/}" "$GITHUB_SHA" ;;
+            *) git checkout -q --force --detach "$GITHUB_SHA" ;;
+        esac
+        git log -1 --format='Checked out %H (shallow sparse)'
+      env:
+        ENACT_FETCH_DEPTH: "1"
+        ENACT_GIT_TOKEN: ${{ github.token }}
+        ENACT_SPARSE_CONE: ${{ matrix.sparse_checkout }}
+    - name: Checkout Repository (full)
+      if: ${{ matrix.sparse_checkout == '' && (steps.runner_caches.outputs.host == '' || steps.host_checkout.outcome == 'failure') }}
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: "1"
+        fetch-tags: "false"
+        lfs: "false"
+        show-progress: "false"
+        submodules: "false"
+    - name: Install committed enact & enve builds
+      run: |
+        P="$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/^darwin$/macos/')-$(uname -m | sed 's/^arm64$/aarch64/')"
+        E="${GITHUB_WORKSPACE:-$PWD}/bin/$P/enact"
+        [ -f "$E" ] || E="${GITHUB_WORKSPACE:-$PWD}/bin/enact"
+        [ -f "$E" ] || E="$(command -v enact || echo "$HOME/.cargo/bin/enact")"
+        chmod +x "$E" 2>/dev/null || true
+        "$E" --version >/dev/null 2>&1 || { echo "::error title=No enact for $P::$E does not run on this $P runner; commit its build as bin/$P/enact"; exit 1; }
+        "$E" ci install-binaries
     - name: Look Up Built Outputs in the Host Cache
       id: outputs-host-lookup
       if: ${{ steps.runner_caches.outputs.host != '' && matrix.output_key != '' }}
@@ -62,7 +296,8 @@ jobs:
         store="${ENACT_OUTPUTS_CACHE:-}"
         entry="$store/${GITHUB_REPOSITORY:-repo}/$ENACT_OUTPUTS_KEY"
         hit=false
-        if [ -n "$store" ] && [ -f "$entry/.enact-ready" ]; then
+        if [ -n "$store" ] && [ -f "$entry/.enact-ready" ] && \
+            ENACT_OUTPUTS_VERIFY_ROOT="$entry" "${ENACT_OUTPUTS_VERIFIER:-enact}" ci host-outputs verify >/dev/null 2>&1; then
             hit=true
             while IFS= read -r pattern; do
                 [ -n "$pattern" ] || continue
@@ -79,6 +314,16 @@ jobs:
       env:
         ENACT_OUTPUTS_KEY: enact-outputs-${{ matrix.output_slug }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.output_key }}
         ENACT_OUTPUTS_PATHS: ${{ matrix.output_paths }}
+    - name: Look Up Built Outputs in the Remote Cache
+      id: outputs-remote-lookup
+      if: ${{ steps.outputs-host-lookup.outputs.cache-hit != 'true' && matrix.output_key != '' }}
+      continue-on-error: true
+      run: enact ci host-outputs remote-lookup
+      env:
+        ENACT_CACHE_WRITE: read_only
+        ENACT_OUTPUTS_KEY: enact-outputs-${{ matrix.output_slug }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.output_key }}
+        ENACT_OUTPUTS_PATHS: ${{ matrix.output_paths }}
+        ENACT_OUTPUTS_REMOTE_PUBLIC_URL: https://cache.tonky.dev
     - name: Look Up Built Outputs
       id: outputs-lookup
       if: ${{ matrix.output_key != '' }}
@@ -93,107 +338,51 @@ jobs:
       if: ${{ matrix.output_key != '' }}
       run: "[ \"$HIT\" != true ] || echo hit=true >> \"$GITHUB_OUTPUT\""
       env:
-        HIT: ${{ steps.outputs-host-lookup.outputs.cache-hit == 'true' || steps.outputs-lookup.outputs.cache-hit == 'true' }}
-    - name: Checkout Repository (sparse) from the Host Mirror
-      id: host_checkout
-      if: ${{ (steps.runner_caches.outputs.host != '') && !steps.skip.outputs.hit }}
-      continue-on-error: true
-      run: |
-        set -euo pipefail
-        git config --global --add safe.directory "*"
-        url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
-        mirror="$ENACT_GIT_MIRROR"
-        header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$ENACT_GIT_TOKEN" | base64 | tr -d '\n')"
-        refs=("+refs/heads/*:refs/heads/*")
-        case "$GITHUB_REF" in
-            refs/pull/*) refs+=("+$GITHUB_REF:$GITHUB_REF") ;;
-        esac
-        (
-            flock 9
-            if [ ! -f "$mirror/HEAD" ]; then
-                git init -q --bare "$mirror"
-                git -C "$mirror" config uploadpack.allowAnySHA1InWant true
-                git -C "$mirror" config gc.auto 0
-            fi
-            ref_current=""
-            case "$GITHUB_REF" in
-                refs/heads/*|refs/pull/*) ref_current=$(git -C "$mirror" rev-parse --verify -q "$GITHUB_REF^{commit}" 2>/dev/null || true) ;;
-                *) ref_current="$GITHUB_SHA" ;;
-            esac
-            if [ -z "$(find "$mirror/HEAD" -mmin -1 2>/dev/null || true)" ] || [ "$ref_current" != "$GITHUB_SHA" ] || ! git -C "$mirror" cat-file -e "$GITHUB_SHA^{commit}" 2>/dev/null; then
-                git -C "$mirror" -c "http.extraheader=$header" fetch -q --no-tags --prune "$url" "${refs[@]}"
-                if ! git -C "$mirror" cat-file -e "$GITHUB_SHA^{commit}" 2>/dev/null; then
-                    git -C "$mirror" -c "http.extraheader=$header" fetch -q --no-tags "$url" "$GITHUB_SHA"
-                fi
-            fi
-            touch "$mirror" "$mirror/HEAD" 2>/dev/null || true
-        ) 9>"$mirror.lock"
-        cd "$GITHUB_WORKSPACE"
-        trap 'rm -rf "$GITHUB_WORKSPACE/.git"' ERR
-        find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +
-        git init -q .
-        echo "$mirror/objects" > .git/objects/info/alternates
-        [ ! -f "$mirror/shallow" ] || cp "$mirror/shallow" .git/shallow
-        git remote add origin "$url"
-        git config --local "http.$GITHUB_SERVER_URL/.extraheader" "$header"
-        git config --local gc.auto 0
-        git fetch -q --no-tags "$mirror" "+refs/heads/*:refs/remotes/origin/*"
-        if [ -n "${ENACT_SPARSE_CONE:-}" ]; then
-            mapfile -t cone < <(printf '%s\n' "$ENACT_SPARSE_CONE" | sed '/^[[:space:]]*$/d')
-            git sparse-checkout set --cone "${cone[@]}"
-        fi
-        case "$GITHUB_REF" in
-            refs/heads/*) git checkout -q --force -B "${GITHUB_REF#refs/heads/}" "$GITHUB_SHA" ;;
-            *) git checkout -q --force --detach "$GITHUB_SHA" ;;
-        esac
-        git log -1 --format='Checked out %H through the host mirror'
-      env:
-        ENACT_GIT_TOKEN: ${{ github.token }}
-        ENACT_SPARSE_CONE: ${{ matrix.sparse_checkout }}
-    - name: Checkout Repository (sparse)
-      if: ${{ (matrix.sparse_checkout != '' && (steps.runner_caches.outputs.host == '' || steps.host_checkout.outcome == 'failure')) && !steps.skip.outputs.hit }}
-      uses: actions/checkout@v7
-      with:
-        fetch-depth: "1"
-        fetch-tags: "false"
-        lfs: "false"
-        show-progress: "false"
-        sparse-checkout: ${{ matrix.sparse_checkout }}
-        sparse-checkout-cone-mode: "true"
-        submodules: "false"
-    - name: Checkout Repository (full)
-      if: ${{ (matrix.sparse_checkout == '' && (steps.runner_caches.outputs.host == '' || steps.host_checkout.outcome == 'failure')) && !steps.skip.outputs.hit }}
-      uses: actions/checkout@v7
-      with:
-        fetch-depth: "1"
-        fetch-tags: "false"
-        lfs: "false"
-        show-progress: "false"
-        submodules: "false"
-    - name: Install committed enact & enve builds
-      if: ${{ !steps.skip.outputs.hit }}
-      run: |
-        P="$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/^darwin$/macos/')-$(uname -m | sed 's/^arm64$/aarch64/')"
-        E="${GITHUB_WORKSPACE:-$PWD}/bin/$P/enact"
-        [ -f "$E" ] || E="${GITHUB_WORKSPACE:-$PWD}/bin/enact"
-        [ -f "$E" ] || E="$(command -v enact || echo "$HOME/.cargo/bin/enact")"
-        chmod +x "$E" 2>/dev/null || true
-        "$E" --version >/dev/null 2>&1 || { echo "::error title=No enact for $P::$E does not run on this $P runner; commit its build as bin/$P/enact"; exit 1; }
-        "$E" ci install-binaries
+        HIT: ${{ steps.outputs-host-lookup.outputs.cache-hit == 'true' || steps.outputs-remote-lookup.outputs.cache-hit == 'true' || (!(github.event_name == 'workflow_dispatch' && inputs.seed_caches == 'true' && github.ref_name == github.event.repository.default_branch) && steps.outputs-lookup.outputs.cache-hit == 'true') }}
     - name: Ensure enve & enact CLI on PATH
+      id: setup-runner
       if: ${{ !steps.skip.outputs.hit }}
       run: enact ci setup-runner
+    - name: Recover Built Outputs with the Installed CLI
+      id: outputs-host-recover
+      if: ${{ success() && steps.runner_caches.outputs.host != '' && !steps.skip.outputs.hit && matrix.output_key != '' }}
+      continue-on-error: true
+      run: enact ci host-outputs restore-build
+      env:
+        ENACT_OUTPUTS_KEY: enact-outputs-${{ matrix.output_slug }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.output_key }}
+        ENACT_OUTPUTS_PATHS: ${{ matrix.output_paths }}
+    - name: Write the Build Outputs Producers
+      if: ${{ (toJson(matrix.output_keys) != 'null') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
+      run: |-
+        cat > "$ENACT_OUTPUTS_PRODUCERS_FILE" <<'PRODUCERS_JSON'
+        {"e2e--build":{"job":"e2e:build","paths":"bin/grafana\npublic/build\npublic/app/plugins/datasource/*/dist\ne2e-playwright/test-plugins/*/dist\ndata/plugins-bundled\n.enact/state/outputs/e2e--build.key\n.enact/state/outputs/e2e--build.manifest-v1.json"}}
+        PRODUCERS_JSON
+      env:
+        ENACT_OUTPUTS_PRODUCERS_FILE: ${{ runner.temp }}/enact-outputs-producers.json
     - name: Restore Built Outputs from the Host Cache
       id: outputs-host
-      if: ${{ (steps.runner_caches.outputs.host != '' && toJson(matrix.output_keys) != 'null') && !steps.skip.outputs.hit }}
+      if: ${{ (steps.runner_caches.outputs.host != '' && toJson(matrix.output_keys) != 'null') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       continue-on-error: true
       run: enact ci host-outputs restore
       env:
         ENACT_OUTPUTS_NEEDED: ${{ toJson(matrix.output_keys) }}
         ENACT_OUTPUTS_PLATFORM: ${{ runner.os }}-${{ runner.arch }}
+        ENACT_OUTPUTS_PRODUCERS_FILE: ${{ runner.temp }}/enact-outputs-producers.json
+    - name: Restore Built Outputs from the Remote Cache
+      id: outputs-remote
+      if: ${{ (toJson(matrix.output_keys) != 'null') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
+      continue-on-error: true
+      run: enact ci host-outputs remote-restore
+      env:
+        ENACT_CACHE_WRITE: read_only
+        ENACT_OUTPUTS_NEEDED: ${{ toJson(matrix.output_keys) }}
+        ENACT_OUTPUTS_PLATFORM: ${{ runner.os }}-${{ runner.arch }}
+        ENACT_OUTPUTS_PRODUCERS_FILE: ${{ runner.temp }}/enact-outputs-producers.json
+        ENACT_OUTPUTS_REMOTE_PUBLIC_URL: https://cache.tonky.dev
+        ENACT_OUTPUTS_STEPS: ${{ toJson(steps) }}
     - name: Restore Built Outputs (e2e:build)
       id: outputs-e2e--build
-      if: ${{ (matrix.output_keys['e2e--build'] != '' && steps.outputs-host.outputs['e2e--build'] != 'true') && !steps.skip.outputs.hit }}
+      if: ${{ (matrix.output_keys['e2e--build'] != '' && steps.outputs-host.outputs['e2e--build'] != 'true' && steps.outputs-remote.outputs['e2e--build'] != 'true') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       continue-on-error: true
       uses: actions/cache/restore@v6
       with:
@@ -205,37 +394,38 @@ jobs:
           e2e-playwright/test-plugins/*/dist
           data/plugins-bundled
           .enact/state/outputs/e2e--build.key
+          .enact/state/outputs/e2e--build.manifest-v1.json
+    - name: Restore Built Outputs Artifact (e2e:build)
+      id: outputs-artifact-e2e--build
+      if: ${{ (matrix.output_keys['e2e--build'] != '' && steps.outputs-host.outputs['e2e--build'] != 'true' && steps.outputs-remote.outputs['e2e--build'] != 'true' && steps.outputs-e2e--build.outputs.cache-hit != 'true') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
+      continue-on-error: true
+      uses: actions/download-artifact@v8
+      with:
+        name: enact-outputs-e2e--build-${{ runner.os }}-${{ runner.arch }}
+        path: '.'
     - name: Require Built Outputs
-      if: ${{ (toJson(matrix.output_keys) != 'null') && !steps.skip.outputs.hit }}
+      if: ${{ (toJson(matrix.output_keys) != 'null') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       run: enact ci host-outputs require
       env:
         ENACT_OUTPUTS_NEEDED: ${{ toJson(matrix.output_keys) }}
         ENACT_OUTPUTS_PLATFORM: ${{ runner.os }}-${{ runner.arch }}
+        ENACT_OUTPUTS_PRODUCERS_FILE: ${{ runner.temp }}/enact-outputs-producers.json
         ENACT_OUTPUTS_STEPS: ${{ toJson(steps) }}
     - parallel:
-      - name: Restore enact Task CAS Cache
-        id: enact-tasks-cache
-        if: ${{ !steps.skip.outputs.hit }}
-        continue-on-error: true
-        uses: actions/cache/restore@v6
-        with:
-          key: ${{ runner.os }}-enact-tasks-${{ github.sha }}
-          path: .enact/state/cache
-          restore-keys: ${{ runner.os }}-enact-tasks-
       - name: Restore Python build & venv cache
         id: python_l1_cache
-        if: ${{ (hashFiles('**/uv.lock', '**/pyproject.toml', '**/requirements.txt', '**/poetry.lock') != '' && contains(matrix.technology, 'python') && steps.runner_caches.outputs.host == '') && !steps.skip.outputs.hit }}
+        if: ${{ (contains(matrix.technology, 'python') && steps.runner_caches.outputs.host == '' && hashFiles('uv.lock', 'pyproject.toml', 'requirements.txt', 'poetry.lock', 'enve.lock') != '') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
         continue-on-error: true
         uses: actions/cache/restore@v6
         with:
-          key: ${{ runner.os }}-python-${{ hashFiles('**/uv.lock', '**/pyproject.toml', '**/requirements.txt', '**/poetry.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-python-v2-${{ hashFiles('uv.lock', 'pyproject.toml', 'requirements.txt', 'poetry.lock', 'enve.lock') }}
           path: |-
             /tmp/.cache/uv
             /tmp/.cache/pip
-          restore-keys: ${{ runner.os }}-python-
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-python-v2-
       - name: Restore Go build cache
         id: go_l1_cache
-        if: ${{ (hashFiles('**/go.mod', '**/go.sum') != '' && contains(matrix.technology, 'go') && steps.runner_caches.outputs.host == '') && !steps.skip.outputs.hit }}
+        if: ${{ (contains(matrix.technology, 'go') && steps.runner_caches.outputs.host == '' && hashFiles('**/go.mod', '**/go.sum') != '') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
         continue-on-error: true
         uses: actions/cache/restore@v6
         with:
@@ -248,19 +438,17 @@ jobs:
             ${{ runner.os }}-go-
       - name: Restore Node dependency cache
         id: node_l1_cache
-        if: ${{ ((contains(matrix.technology, 'typescript') || contains(matrix.technology, 'javascript') || contains(matrix.technology, 'node')) && steps.runner_caches.outputs.host == '') && !steps.skip.outputs.hit }}
+        if: ${{ ((contains(matrix.technology, 'typescript') || contains(matrix.technology, 'javascript') || contains(matrix.technology, 'node')) && steps.runner_caches.outputs.host == '') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
         continue-on-error: true
         uses: actions/cache/restore@v6
         with:
-          key: ${{ runner.os }}-${{ runner.arch }}-node-v2-${{ matrix.task_id }}-${{ hashFiles('package.json', 'pnpm-lock.yaml', 'enve.lock', 'pnpm-workspace.yaml') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-node-v3-${{ hashFiles('package.json', 'pnpm-lock.yaml', 'enve.lock', 'pnpm-workspace.yaml') }}
           path: |-
             .enact/state/pnpm-store
             node_modules/.cache
-          restore-keys: |-
-            ${{ runner.os }}-${{ runner.arch }}-node-v2-${{ matrix.task_id }}-
-            ${{ runner.os }}-${{ runner.arch }}-node-v2-
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-node-v3-
     - name: Record Restored Package Caches
-      if: ${{ (steps.runner_caches.outputs.host == '') && !steps.skip.outputs.hit }}
+      if: ${{ ((steps.runner_caches.outputs.host == '' && steps.python_l1_cache.outputs.cache-hit != 'true' || steps.runner_caches.outputs.host == '' && steps.node_l1_cache.outputs.cache-hit != 'true') && github.event_name != 'pull_request') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       continue-on-error: true
       run: enact ci cache-delta record
       env:
@@ -269,26 +457,72 @@ jobs:
           python_l1_cache /tmp/.cache/pip
           node_l1_cache .enact/state/pnpm-store
           node_l1_cache node_modules/.cache
+        ENACT_CACHE_HITS: |-
+          python_l1_cache=${{ steps.python_l1_cache.outputs.cache-hit }}
+          node_l1_cache=${{ steps.node_l1_cache.outputs.cache-hit }}
+    - name: Restore shard-manifest Handoff
+      id: shard-manifest-native
+      if: ${{ (matrix.shard_manifest_digest != '' && env.ENACT_HOST_CACHE != '') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
+      continue-on-error: true
+      run: enact ci handoff shard-manifest --artifact "$ENACT_HANDOFF_ARTIFACT" --directory "$RUNNER_TEMP/enact-shard-manifest"
+      env:
+        ENACT_HANDOFF_ARTIFACT: enact-shard-manifest
+        GH_TOKEN: ${{ github.token }}
+    - name: Download the Frozen Shard Manifest
+      id: shard-manifest-download
+      if: ${{ (matrix.shard_manifest_digest != '' && steps.shard-manifest-native.outputs.ready != 'true') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
+      uses: actions/download-artifact@v8
+      with:
+        name: enact-shard-manifest
+        path: ${{ runner.temp }}/enact-shard-manifest
+    - name: Cache shard-manifest Handoff on the Receiving Host
+      if: ${{ (matrix.shard_manifest_digest != '' && env.ENACT_HOST_CACHE != '' && steps.shard-manifest-native.outputs.ready != 'true') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
+      continue-on-error: true
+      run: enact ci handoff shard-manifest --publish --artifact "$ENACT_HANDOFF_ARTIFACT" --directory "$RUNNER_TEMP/enact-shard-manifest"
+      env:
+        ENACT_HANDOFF_ARTIFACT: enact-shard-manifest
+    - name: Pin the Frozen Shard Manifest
+      id: shard-manifest-pin
+      if: ${{ (matrix.shard_manifest_digest != '') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
+      run: echo "ENACT_SHARD_MANIFEST=$RUNNER_TEMP/enact-shard-manifest/manifest.json" >> "$GITHUB_ENV"
+    - name: Restore reach Handoff
+      id: reach-native
+      if: ${{ (toJSON(matrix.needs_reach) != 'false' && (env.ENACT_HOST_CACHE != '')) && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
+      continue-on-error: true
+      run: enact ci handoff reach --artifact "$ENACT_HANDOFF_ARTIFACT" --directory "$RUNNER_TEMP/enact-reach"
+      env:
+        ENACT_HANDOFF_ARTIFACT: enact-reach-map
+        GH_TOKEN: ${{ github.token }}
     - name: Download the Reach Map
-      if: ${{ !steps.skip.outputs.hit }}
+      id: reach-download
+      if: ${{ (toJSON(matrix.needs_reach) != 'false' && (steps.reach-native.outputs.ready != 'true')) && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       continue-on-error: true
       uses: actions/download-artifact@v8
       with:
         name: enact-reach-map
         path: ${{ runner.temp }}/enact-reach
+    - name: Cache reach Handoff on the Receiving Host
+      id: reach-verified
+      if: ${{ (toJSON(matrix.needs_reach) != 'false' && (env.ENACT_HOST_CACHE != '' && steps.reach-native.outputs.ready != 'true')) && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
+      continue-on-error: true
+      run: enact ci handoff reach --publish --artifact "$ENACT_HANDOFF_ARTIFACT" --directory "$RUNNER_TEMP/enact-reach"
+      env:
+        ENACT_HANDOFF_ARTIFACT: enact-reach-map
     - name: Plan with the Detected Reach Map
-      if: ${{ !steps.skip.outputs.hit }}
+      id: reach-pin
+      if: ${{ !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       run: |-
         if [ -n "${GITHUB_HEAD_SHA:-}" ] && [ -z "$(git rev-list -n1 --no-walk --ignore-missing --missing=allow-any "$GITHUB_HEAD_SHA" -- 2>/dev/null)" ]; then
-          git fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_HEAD_SHA" 2>/dev/null || true
+          git fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_HEAD_SHA" 2>/dev/null
         fi
-        if [ -f "$RUNNER_TEMP/enact-reach/map.bin" ]; then
+        if [ "$ENACT_HANDOFF_READY" = true ] && [ -f "$RUNNER_TEMP/enact-reach/map.bin" ] && [ -f "$RUNNER_TEMP/enact-reach/map.age.json" ]; then
           echo "ENACT_REACH_FILE=$RUNNER_TEMP/enact-reach/map.bin" >> "$GITHUB_ENV"
         fi
       env:
+        ENACT_HANDOFF_READY: ${{ steps.reach-native.outputs.ready == 'true' || steps.reach-verified.outputs.ready == 'true' || (env.ENACT_HOST_CACHE == '' && steps.reach-download.outcome == 'success') }}
         GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
     - name: Fetch the Revisions Selection Ages By
-      if: ${{ (matrix.selects_in_job) && !steps.skip.outputs.hit }}
+      if: ${{ (matrix.selects_in_job) && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       continue-on-error: true
       run: |-
         FETCH="git fetch --no-tags --depth=1 --filter=blob:none origin"
@@ -302,26 +536,29 @@ jobs:
       env:
         ENACT_SELECT_BASE: ${{ matrix.select_base }}
     - name: Pull Dependencies via enve
-      if: ${{ !steps.skip.outputs.hit }}
+      if: ${{ !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       run: enact ci deps pull --component --remote signed
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID || env.R2_ACCESS_KEY_ID }}
         AWS_REGION: auto
         AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY || env.R2_SECRET_ACCESS_KEY }}
         ENACT_COMPONENT_DIR: ${{ matrix.component_dir }}
+        ENACT_ENVIRONMENT_FILE: ${{ matrix.environment_file || '' }}
+        ENACT_JOB_SERVICES: ${{ matrix.services }}
+        ENACT_PREPARE_ENVIRONMENT_FILES: ${{ toJSON(matrix.preparation_environment_files || fromJSON('[]')) }}
         ENACT_R2_BUCKET: ${{ secrets.R2_BUCKET || env.R2_BUCKET }}
         ENVE_CACHE_CONCURRENCY: "16"
     - name: Check enve Stores into the Host Cache
-      if: ${{ (steps.runner_caches.outputs.host != '') && !steps.skip.outputs.hit }}
+      if: ${{ (steps.runner_caches.outputs.host != '') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       run: enact ci check-store
     - name: Install Project Dependencies
-      if: ${{ (hashFiles('package.json') != '' && (contains(matrix.technology, 'typescript') || contains(matrix.technology, 'javascript') || contains(matrix.technology, 'node'))) && !steps.skip.outputs.hit }}
+      if: ${{ (hashFiles('package.json') != '' && (contains(matrix.technology, 'typescript') || contains(matrix.technology, 'javascript') || contains(matrix.technology, 'node'))) && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       run: enact ci deps install node --manager pnpm --filters
       env:
+        ENACT_ENVIRONMENT_FILE: enve.cue
         ENACT_MATRIX_FILTER_ARGS: ${{ matrix.filter_args }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Execute Component Task
-      if: ${{ !steps.skip.outputs.hit }}
+      if: ${{ !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       run: eval "$ENACT_MATRIX_COMMAND"
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID || env.R2_ACCESS_KEY_ID }}
@@ -329,6 +566,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY || env.R2_SECRET_ACCESS_KEY }}
         CI_COMPONENT: ${{ matrix.component }}
         ENACT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        ENACT_ENVIRONMENT_FILE: ${{ matrix.environment_file || '' }}
         ENACT_MATRIX_COMMAND: ${{ matrix.command }}
         ENACT_MAX_PARALLEL: ${{ matrix.max_parallel }}
         ENACT_PREEMPTION_NOTICE_SEC: ${{ matrix.preemption_notice_sec }}
@@ -337,8 +575,20 @@ jobs:
         ENACT_RUNNER_TIER: ${{ matrix.runner_tier }}
         ENACT_SAME_REPO_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != github.event.repository.default_branch }}
         ENACT_TOPOLOGY: ${{ matrix.topology }}
+    - name: Diagnose Cgroup OOM on Failure
+      if: ${{ (failure()) && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
+      run: |-
+        if [ -r /sys/fs/cgroup/memory.events ]; then
+        oom=$(awk '$1 == "oom_kill" { print $2 }' /sys/fs/cgroup/memory.events 2>/dev/null || echo 0)
+        peak=$(cat /sys/fs/cgroup/memory.peak 2>/dev/null || echo unknown)
+        limit=$(cat /sys/fs/cgroup/memory.max 2>/dev/null || echo unknown)
+        echo "cgroup memory: oom_kill=${oom:-0} peak=${peak} max=${limit}"
+        if [ "${oom:-0}" -gt 0 ] 2>/dev/null; then
+        echo "::error::Container cgroup OOM-killed a process (oom_kill=${oom}, memory.peak=${peak}, memory.max=${limit})"
+        fi
+        fi
     - name: Push Updated Dependencies to the Remote Cache
-      if: ${{ (success() && env.ENACT_REMOTE_SAVE_EVENT == 'true') && !steps.skip.outputs.hit }}
+      if: ${{ (success() && env.ENACT_REMOTE_SAVE_EVENT == 'true' && env.ENACT_HAS_SIGNING_KEY == 'true') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       continue-on-error: true
       run: enact ci deps push --signed
       env:
@@ -346,10 +596,15 @@ jobs:
         AWS_REGION: auto
         AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY || env.R2_SECRET_ACCESS_KEY }}
         ENACT_COMPONENT_DIR: ${{ matrix.component_dir }}
+        ENACT_ENVIRONMENT_FILE: ${{ matrix.environment_file || '' }}
+        ENACT_JOB_SERVICES: ${{ matrix.services }}
+        ENACT_PREPARE_ENVIRONMENT_FILES: ${{ toJSON(matrix.preparation_environment_files || fromJSON('[]')) }}
         ENACT_R2_BUCKET: ${{ secrets.R2_BUCKET || env.R2_BUCKET }}
         ENVE_CACHE_CONCURRENCY: "16"
-    - name: Upload Execution Telemetry & Workflow Dashboard
-      if: ${{ (always()) && !steps.skip.outputs.hit }}
+        ENVE_CACHE_SECRET_KEY: ${{ secrets.ENVE_CACHE_SECRET_KEY || env.ENVE_CACHE_SECRET_KEY }}
+        NIX_SECRET_KEY: ${{ secrets.NIX_SECRET_KEY || env.NIX_SECRET_KEY }}
+    - name: Upload Telemetry [telemetry-${{ matrix.task_id }}]
+      if: ${{ (always()) && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       continue-on-error: true
       uses: actions/upload-artifact@v7
       with:
@@ -363,7 +618,7 @@ jobs:
           .enact/state/diagnostics/grafana-e2e/*/grafana-server.log
         retention-days: "1"
     - name: Upload Recorded Footprints
-      if: ${{ (always() && (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch || github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != github.event.repository.default_branch || github.event_name == 'workflow_dispatch' && inputs.warm_reach == 'true' && github.ref_name == github.event.repository.default_branch)) && !steps.skip.outputs.hit }}
+      if: ${{ (always() && (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch || github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != github.event.repository.default_branch || github.event_name == 'workflow_dispatch' && inputs.warm_reach == 'true' && github.ref_name == github.event.repository.default_branch)) && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       continue-on-error: true
       uses: actions/upload-artifact@v7
       with:
@@ -373,7 +628,7 @@ jobs:
         retention-days: "1"
     - name: Check Package Caches for New Entries
       id: cache_delta
-      if: ${{ (!cancelled() && steps.runner_caches.outputs.host == '' && env.ENACT_SAVE_EVENT == 'true' && (matrix.shard_index == '' || matrix.shard_index == 1 || matrix.shard_index == '1')) && !steps.skip.outputs.hit }}
+      if: ${{ (!cancelled() && (steps.runner_caches.outputs.host == '' && steps.python_l1_cache.outputs.cache-hit != 'true' || steps.runner_caches.outputs.host == '' && steps.node_l1_cache.outputs.cache-hit != 'true') && env.ENACT_SAVE_EVENT == 'true' && (matrix.shard_index == '' || matrix.shard_index == 1 || matrix.shard_index == '1') && github.event_name != 'pull_request') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       continue-on-error: true
       run: enact ci cache-delta check
       env:
@@ -382,9 +637,12 @@ jobs:
           python_l1_cache /tmp/.cache/pip
           node_l1_cache .enact/state/pnpm-store
           node_l1_cache node_modules/.cache
-        ENACT_UV_PRUNE: "true"
+        ENACT_CACHE_HITS: |-
+          python_l1_cache=${{ steps.python_l1_cache.outputs.cache-hit }}
+          node_l1_cache=${{ steps.node_l1_cache.outputs.cache-hit }}
+        ENACT_UV_PRUNE: ${{ contains(matrix.technology, 'python') && steps.python_l1_cache.outputs.cache-hit != 'true' }}
     - name: Save Python build & venv cache
-      if: ${{ ((env.ENACT_SAVE_EVENT == 'true' && hashFiles('**/uv.lock', '**/pyproject.toml', '**/requirements.txt', '**/poetry.lock') != '' && contains(matrix.technology, 'python') && steps.runner_caches.outputs.host == '' && (matrix.shard_index == '' || matrix.shard_index == 1 || matrix.shard_index == '1') && steps.cache_delta.outputs.python_l1_cache == 'true') && steps.python_l1_cache.outputs.cache-hit != 'true') && !steps.skip.outputs.hit }}
+      if: ${{ ((env.ENACT_SAVE_EVENT == 'true' && contains(matrix.technology, 'python') && steps.runner_caches.outputs.host == '' && hashFiles('uv.lock', 'pyproject.toml', 'requirements.txt', 'poetry.lock', 'enve.lock') != '' && (matrix.shard_index == '' || matrix.shard_index == 1 || matrix.shard_index == '1') && steps.cache_delta.outputs.python_l1_cache == 'true') && github.event_name != 'pull_request' && steps.python_l1_cache.outputs.cache-hit != 'true') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       continue-on-error: true
       uses: actions/cache/save@v6
       with:
@@ -394,7 +652,7 @@ jobs:
           /tmp/.cache/pip
     - parallel:
       - name: Save Go build cache
-        if: ${{ (((env.ENACT_SAVE_EVENT == 'true' && hashFiles('**/go.mod', '**/go.sum') != '' && contains(matrix.technology, 'go') && steps.runner_caches.outputs.host == '' && (matrix.shard_index == '' || matrix.shard_index == 1 || matrix.shard_index == '1')) && (github.event_name == 'schedule' || github.event_name != 'pull_request' && github.ref_name == github.event.repository.default_branch || !startsWith(steps.go_l1_cache.outputs.cache-matched-key, format('{0}-go-{1}-', runner.os, hashFiles('**/go.mod', '**/go.sum'))))) && steps.go_l1_cache.outputs.cache-hit != 'true') && !steps.skip.outputs.hit }}
+        if: ${{ (((env.ENACT_SAVE_EVENT == 'true' && contains(matrix.technology, 'go') && steps.runner_caches.outputs.host == '' && hashFiles('**/go.mod', '**/go.sum') != '' && (matrix.shard_index == '' || matrix.shard_index == 1 || matrix.shard_index == '1')) && (github.event_name == 'schedule' || github.event_name != 'pull_request' && github.ref_name == github.event.repository.default_branch || !startsWith(steps.go_l1_cache.outputs.cache-matched-key, format('{0}-go-{1}-', runner.os, hashFiles('**/go.mod', '**/go.sum'))))) && github.event_name != 'pull_request' && steps.go_l1_cache.outputs.cache-hit != 'true') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
         continue-on-error: true
         uses: actions/cache/save@v6
         with:
@@ -411,12 +669,15 @@ jobs:
         ENACT_OUTPUTS_PATHS: ${{ matrix.output_paths }}
     - name: Copy Host-Cached Outputs for GitHub's Cache
       id: outputs-publish
-      if: ${{ success() && steps.outputs-host-lookup.outputs.cache-hit == 'true' && steps.outputs-lookup.outputs.cache-hit != 'true' && matrix.output_key != '' }}
+      if: ${{ success() && steps.outputs-host-lookup.outputs.cache-hit == 'true' && (steps.outputs-lookup.outputs.cache-hit != 'true' || (github.event_name == 'schedule' || github.event_name != 'pull_request' && github.ref_name == github.event.repository.default_branch) && steps.outputs-remote-lookup.outputs.cache-hit != 'true') && matrix.output_key != '' }}
       continue-on-error: true
       run: |
         set -euo pipefail
         store="${ENACT_OUTPUTS_CACHE:-}"
         entry="$store/${GITHUB_REPOSITORY:-repo}/$ENACT_OUTPUTS_KEY"
+        verify_outputs() {
+            ENACT_OUTPUTS_VERIFY_ROOT="$1" "${ENACT_OUTPUTS_VERIFIER:-enact}" ci host-outputs verify >/dev/null 2>&1
+        }
         clone_item() {
             rm -rf "$2"
             mkdir -p "$(dirname "$2")"
@@ -425,7 +686,7 @@ jobs:
         case "$ENACT_OUTPUTS_MODE" in
             restore)
                 hit=false
-                if [ -n "$store" ] && [ -f "$entry/.enact-ready" ]; then
+                if [ -n "$store" ] && [ -f "$entry/.enact-ready" ] && verify_outputs "$entry"; then
                     hit=true
                     while IFS= read -r pattern; do
                         [ -n "$pattern" ] || continue
@@ -437,6 +698,7 @@ jobs:
                         done
                     done <<<"$ENACT_OUTPUTS_PATHS"
                 fi
+                if [ "$hit" = true ] && ! verify_outputs .; then hit=false; fi
                 if [ "$hit" = true ]; then
                     touch "$entry/.enact-ready" 2>/dev/null || true
                 fi
@@ -444,7 +706,8 @@ jobs:
                 ;;
             save)
                 [ -n "$store" ] || exit 0
-                [ ! -f "$entry/.enact-ready" ] || exit 0
+                verify_outputs . || { echo "producer output integrity check failed" >&2; exit 1; }
+                if [ -f "$entry/.enact-ready" ] && verify_outputs "$entry"; then exit 0; fi
                 mkdir -p "$(dirname "$entry")"
                 tmp=$(mktemp -d "$entry.tmp.XXXXXX")
                 trap 'rm -rf "$tmp"' EXIT
@@ -456,8 +719,9 @@ jobs:
                         clone_item "$src" "$tmp/$src"
                     done
                 done <<<"$ENACT_OUTPUTS_PATHS"
+                verify_outputs "$tmp" || exit 1
                 touch "$tmp/.enact-ready"
-                chmod -R a+rX "$tmp" 2>/dev/null || true
+                [ ! -d "$entry" ] || rm -rf "$entry"
                 if ! mv -n "$tmp" "$entry" 2>/dev/null && [ ! -d "$entry" ]; then
                     rm -rf "$entry"
                     mv "$tmp" "$entry"
@@ -499,3 +763,25 @@ jobs:
       with:
         key: enact-outputs-${{ matrix.output_slug }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.output_key }}
         path: ${{ matrix.output_paths }}
+    - name: Upload Built Outputs Artifact
+      if: ${{ success() && (!steps.skip.outputs.hit || steps.outputs-publish.outputs.cache-hit == 'true') && matrix.output_key != '' }}
+      continue-on-error: true
+      uses: actions/upload-artifact@v7
+      with:
+        if-no-files-found: error
+        include-hidden-files: "true"
+        name: enact-outputs-${{ matrix.output_slug }}-${{ runner.os }}-${{ runner.arch }}
+        path: ${{ matrix.output_paths }}
+        retention-days: "1"
+    - name: Save Built Outputs to the Remote Cache
+      if: ${{ success() && (github.event_name == 'schedule' || github.event_name != 'pull_request' && github.ref_name == github.event.repository.default_branch) && steps.outputs-remote-lookup.outputs.cache-hit != 'true' && (!steps.skip.outputs.hit || steps.outputs-publish.outputs.cache-hit == 'true') && matrix.output_key != '' }}
+      continue-on-error: true
+      run: enact ci host-outputs remote-save
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID || env.R2_ACCESS_KEY_ID }}
+        AWS_REGION: auto
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY || env.R2_SECRET_ACCESS_KEY }}
+        ENACT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        ENACT_OUTPUTS_KEY: enact-outputs-${{ matrix.output_slug }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.output_key }}
+        ENACT_OUTPUTS_PATHS: ${{ matrix.output_paths }}
+        ENACT_R2_BUCKET: ${{ secrets.R2_BUCKET || env.R2_BUCKET }}

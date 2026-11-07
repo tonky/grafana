@@ -26,23 +26,32 @@ pipeline: schema.#Pipeline & {
 	// CI's matrix jobs install the pnpm workspace (pnpm-lock.yaml) before the frontend's tasks.
 	toolchain: node: package_manager: "pnpm"
 	ci: {
+		soft_placement: {fallback_seconds: 15}
 		diagnostic_paths: [
 			".enact/state/diagnostics/grafana-e2e/*/results/**",
 			".enact/state/diagnostics/grafana-e2e/*/grafana-server.log",
 		]
 		rerun: {labels: ["rerun", "showcase"], branch_prefixes: ["showcase/"]}
-		concurrency: max_parallel_jobs: 16
 		remote_cache: {
 			secrets: {bucket: "R2_BUCKET", access_key_id: "R2_ACCESS_KEY_ID", secret_access_key: "R2_SECRET_ACCESS_KEY"}
-			public_url: "https://pub-30fd937eb7634039b8c49d49bfec91a9.r2.dev"
+			public_url: "https://cache.tonky.dev"
 			public_key: "enve-r2-1:ckHPTeWVef6mba+1AwWHjKYCsUWKPfP9IXPm5YXNoHg="
 			repo:       "tonky/grafana"
 			branch:     "perf/ci-showcase"
 		}
 		// Runner sizes within ibp8/mac1 shared host budget (agentic/KNOWLEDGE.md tonky-ci).
 		workers: {
+			github: {
+				// Standard public capacity; one declared image shares the account quota.
+				preset: "github-public", labels: ["ubuntu-24.04"]
+				tier: "on_demand", available: 20, cost_per_min: 0
+				// Conservative preparation estimate pending actual hosted measurements.
+				setup_overhead_sec: 300
+				timeout_minutes: 60
+			}
 			standard: {
-				labels:          ["self-hosted", "Linux", "X64", "tonky-ci", "ibp8"]
+				labels:          ["self-hosted", "Linux", "X64", "tonky-ci"]
+				host_id:         "ibp8"
 				tier:            "dedicated"
 				available:       1
 				cost_per_min:    0.010
@@ -58,7 +67,8 @@ pipeline: schema.#Pipeline & {
 				}
 			}
 			arm64: {
-				labels:          ["self-hosted", "Linux", "ARM64", "tonky-ci", "mac1"]
+				labels:          ["self-hosted", "Linux", "ARM64", "tonky-ci"]
+				host_id:         "mac1"
 				tier:            "dedicated"
 				available:       1
 				cost_per_min:    0.010
@@ -66,7 +76,6 @@ pipeline: schema.#Pipeline & {
 				pool: {
 					cpus:      16
 					memory_mb: 36864
-					floor: {cpus: 4, memory_mb: 8192} // mac1 under its lane clamp (KNOWLEDGE `tonky-ci` load clamp)
 					sizes: {
 						"tonky-ci-s": {cpus: 2, memory_mb: 4096}
 						"tonky-ci-m": {cpus: 4, memory_mb: 8192}
@@ -78,9 +87,9 @@ pipeline: schema.#Pipeline & {
 				// A second X64 host (8c/14G): s and m only; a gate lane holding l7 drains it to zero.
 				// A size costs the rate times its share of the largest size: 0.006 prices its m as
 				// the 13 GB pools price theirs.
-				labels: ["self-hosted", "Linux", "X64", "tonky-ci", "l7"], tier: "dedicated", available: 1, cost_per_min: 0.006, timeout_minutes: 60
+				labels: ["self-hosted", "Linux", "X64", "tonky-ci"], host_id: "l7", tier: "dedicated", available: 1, cost_per_min: 0.006, timeout_minutes: 60
 				pool: {
-					cpus: 8, memory_mb: 12288
+					cpus: 16, memory_mb: 13312
 					sizes: {
 						"tonky-ci-s": {cpus: 2, memory_mb: 4096}
 						"tonky-ci-m": {cpus: 4, memory_mb: 8192}

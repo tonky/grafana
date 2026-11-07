@@ -2,8 +2,8 @@
   "platforms": {
     "aarch64-darwin": {
       "binding": {
-        "environment_sha256": "fc3799e81ba332d4b4f032b4686a3533f15a8ae520405ae7b5d691deecf7c34e",
-        "inventory_sha256": "39d24d0cdc3ce13a9344d5f92559d379a0a6aecd74e9fbddf9fbf3236399683c",
+        "environment_sha256": "fc5a3ecea314704bd625f5ab457afeee4e9a1a09cd3e9a9b6dc596d1b5feaed7",
+        "inventory_sha256": "006a70b52e48b7d2338b5284cc748440ef7d85579322473622adaedaf7b0ac4d",
         "profile": null,
         "version": 2
       },
@@ -16,6 +16,18 @@
             "0568rp7whq8ysn4k2a7jranag23grgqn-openssl-3.5.9-dev",
             "68bgiaz10gqpfnvk1vmrj5zsl2dxlv8k-openssl-3.5.9-bin",
             "pnfqc3xvk68sfni9n3j511h1syb26rmy-openssl-3.5.9"
+          ]
+        },
+        {
+          "hash_name": "0avpxpgbx304mqcqkg5cym81vhxzj6p6-nodejs-26.12.1",
+          "nar_hash": "sha256:1cny3sxbjyca87v80macyiz1n42h8n0yar4ssc5mhqngz2yas0cb",
+          "nar_size": 762200,
+          "references": [
+            "0568rp7whq8ysn4k2a7jranag23grgqn-openssl-3.5.9-dev",
+            "0kmckyvgwr556fzai0can4ir2vnwrflc-nodejs-slim-26.12.1-npm",
+            "9ywxd70ar7c1sz8cypspaj4zpnmw9l2v-libuv-1.53.0-dev",
+            "aaq8c9d20ws8fywmn9n3g4skk6ljz2yw-zlib-1.3.2-dev",
+            "bq784vzc35d2bq44j5xs4lszg0hmz4i2-nodejs-slim-26.12.1"
           ]
         },
         {
@@ -49,6 +61,23 @@
             "svkkgla6ini4hg035ka7wb8idm301r1i-apple-sdk-14.4",
             "v7pl3md4rm2iprj2smf9892wmgj5sh7m-tzdata-2026e",
             "zdslvbbhrpilsyqvcwxywqrwla35h68p-ncurses-6.6"
+          ]
+        },
+        {
+          "hash_name": "0kmckyvgwr556fzai0can4ir2vnwrflc-nodejs-slim-26.12.1-npm",
+          "nar_hash": "sha256:1s44ir2w5chk4kk180dy15jhjy82zazgv955rzpa6cl0kns2lcqq",
+          "nar_size": 12873768,
+          "references": [
+            "bq784vzc35d2bq44j5xs4lszg0hmz4i2-nodejs-slim-26.12.1",
+            "i1pdjlwb27ki88zssg5q2h696v1r1m15-bash-5.3p20"
+          ]
+        },
+        {
+          "hash_name": "0pf9iq5gj2wyc6p61blpfdqfm05vgx8b-lief-1.0.0",
+          "nar_hash": "sha256:0b4v20f54sqd326dsq9i3sswyh6hmspj6v129jj2yknc0yqjjxpl",
+          "nar_size": 5411000,
+          "references": [
+            "0pf9iq5gj2wyc6p61blpfdqfm05vgx8b-lief-1.0.0"
           ]
         },
         {
@@ -103,14 +132,6 @@
           ]
         },
         {
-          "hash_name": "14fgncwhxy62slb7hkbg1zc3njvh38nd-libcxx-20.1.8",
-          "nar_hash": "sha256:0ddnxz00l1bgzk04cz4d3r82f23nnab530v8k0c1ll0yaw4w7i12",
-          "nar_size": 4462608,
-          "references": [
-            "14fgncwhxy62slb7hkbg1zc3njvh38nd-libcxx-20.1.8"
-          ]
-        },
-        {
           "hash_name": "14nzy6b98s1xi2q4w6anj9civfdp1jcq-findutils-4.11.0",
           "nar_hash": "sha256:18qgihy0gpajxch544qxg3afx5k0g54dmk40isxacyccakjmp8m2",
           "nar_size": 559960,
@@ -156,15 +177,6 @@
             "arspcb0pa15f9f2b079k1kpqik297fxz-zlib-1.3.2",
             "pnfqc3xvk68sfni9n3j511h1syb26rmy-openssl-3.5.9",
             "rks97mrv4i0rk9l9knj027zhgmy4yb38-bzip2-1.0.8"
-          ]
-        },
-        {
-          "hash_name": "27a4dh0vl268rvw3xqxxcifyzh6h3hm5-nodejs-slim-24.21.0-corepack",
-          "nar_hash": "sha256:0c6l9q6f2m9hxl1q7r9zwnvgfiv3nq2l9zffwibnpnc9jwqrzgp9",
-          "nar_size": 620936,
-          "references": [
-            "a2v4cjj3vsy455nxxgdi3hfq46qic0wq-nodejs-slim-24.21.0",
-            "i1pdjlwb27ki88zssg5q2h696v1r1m15-bash-5.3p20"
           ]
         },
         {
@@ -245,6 +257,14 @@
           "nar_hash": "sha256:15shhmy1qz4wdiirg23jpz3lnm8igb0xc5mmx3p6xxany7c65yrw",
           "nar_size": 701200,
           "references": []
+        },
+        {
+          "hash_name": "3b82f4rpb5j0s7p6yiz7j2jan38ga9m9-libffi-3.8.0",
+          "nar_hash": "sha256:17yzg2ymddbgbd5h9j1xaclhhsbjq7jlq0pynj1mi9n3zgzb77bk",
+          "nar_size": 122160,
+          "references": [
+            "3b82f4rpb5j0s7p6yiz7j2jan38ga9m9-libffi-3.8.0"
+          ]
         },
         {
           "hash_name": "3j53paxbcd4k06zk75jzv018798wjrjm-cctools-binutils-darwin-wrapper-1010.6",
@@ -379,6 +399,14 @@
           ]
         },
         {
+          "hash_name": "4q9bgn1lqkxsqbd3dalz4xwvhrzd33ng-temporal_capi-0.2.6",
+          "nar_hash": "sha256:15dn187kg6w395ksxf5rria8989yhvzidznpqxwqsh5kmbacck5b",
+          "nar_size": 1533632,
+          "references": [
+            "4q9bgn1lqkxsqbd3dalz4xwvhrzd33ng-temporal_capi-0.2.6"
+          ]
+        },
+        {
           "hash_name": "4r0vc481js1rxvb3f9015ii7p9xbij9r-publicsuffix-list-0-unstable-2026-09-02",
           "nar_hash": "sha256:008v3d21lq0lrgcm8cv7r8fy65mv7m456x2np68xwds3yspdb9b0",
           "nar_size": 338304,
@@ -468,14 +496,6 @@
           "nar_size": 28224,
           "references": [
             "6q0ch426vjf3pfhy67y876p24yf100kz-perl5.42.3-FCGI-ProcManager-0.28"
-          ]
-        },
-        {
-          "hash_name": "6ydlx8n92ws24w2xr8dcqmml7vzyyb77-merve-1.2.2",
-          "nar_hash": "sha256:0yrsn6gj0pp6xing2jdkdyrbiy09wp7n2c0ncc2698k75sycgzl8",
-          "nar_size": 93080,
-          "references": [
-            "6ydlx8n92ws24w2xr8dcqmml7vzyyb77-merve-1.2.2"
           ]
         },
         {
@@ -701,37 +721,6 @@
           ]
         },
         {
-          "hash_name": "a2v4cjj3vsy455nxxgdi3hfq46qic0wq-nodejs-slim-24.21.0",
-          "nar_hash": "sha256:0dd9x50s9asmjnmg3wwcc3d4lv0vihf1q0ixjv68wq5vhmhirvb2",
-          "nar_size": 68464080,
-          "references": [
-            "0568rp7whq8ysn4k2a7jranag23grgqn-openssl-3.5.9-dev",
-            "14fgncwhxy62slb7hkbg1zc3njvh38nd-libcxx-20.1.8",
-            "4g405kd8d55bs9w4jdz3zmb5f7dqzszz-hdrhistogram_c-0.11.10",
-            "57s5d87yy7ll1fpkk2xgrjhkpcp8dwz6-nghttp3-1.18.0",
-            "6ydlx8n92ws24w2xr8dcqmml7vzyyb77-merve-1.2.2",
-            "9ywxd70ar7c1sz8cypspaj4zpnmw9l2v-libuv-1.53.0-dev",
-            "a2v4cjj3vsy455nxxgdi3hfq46qic0wq-nodejs-slim-24.21.0",
-            "a4wnz1zimjla18kgrp0x9ljz0vxyyyxn-simdjson-4.6.11",
-            "aaq8c9d20ws8fywmn9n3g4skk6ljz2yw-zlib-1.3.2-dev",
-            "arspcb0pa15f9f2b079k1kpqik297fxz-zlib-1.3.2",
-            "cry7qbrbdqdd1qak8a0dcw70dcm4cshj-brotli-1.2.0-lib",
-            "g0278qlsdqkcgciqylpq95g6v6bjxbhb-nghttp2-1.70.0-lib",
-            "g6ayq0j6ywpv4dfhrq2c6vkfm32h6b57-sqlite-3.53.3",
-            "jnydv03kl75vfnyzb7lyb63kl2kqmwwh-ngtcp2-1.23.0",
-            "jrj60nz430y9nikm92jim5wszsq0mqls-c-ares-1.34.8",
-            "k95ifvjasj6y3indnbk0l5sqs7mrj7zy-libuv-1.53.0",
-            "lpj61lq6ricdhdkz9ss3s9cg8rikbhq6-nbytes-0.1.4",
-            "nby18703h46qghfpy365yy99hz7nc89y-ada-4.0.0",
-            "pnfqc3xvk68sfni9n3j511h1syb26rmy-openssl-3.5.9",
-            "pxm1s6cadz7cjmkh3sximpq7nj2666vp-llhttp-9.4.3",
-            "qa3j5zvp29rdwfs7ykb4cnx6wzacn1lr-zstd-1.5.7",
-            "rdly68s8y8alild9v058nyyalq3kf45z-gtest-1.18.0",
-            "ylnp8zd34xqwxjvk4kqhgv71x7ikc13c-icu4c-78.3",
-            "zpmcffwayfl7rk18xb8sln8xx2mycij1-uvwasi-0.0.23"
-          ]
-        },
-        {
           "hash_name": "a3m4hbgv43cykrsjvha06kfsj7nhc0g2-libutil-73",
           "nar_hash": "sha256:0xygkqfnl10g9n77fplk5c2rgfx1aw0mw955iqvjbv6zhvx38xba",
           "nar_size": 75144,
@@ -828,6 +817,42 @@
         },
         {
           "hash_name": "bizxw78x8k29nd2g3pw7bn0jzgnj7pjn-postgresql-with-pgvector-17"
+        },
+        {
+          "hash_name": "bq784vzc35d2bq44j5xs4lszg0hmz4i2-nodejs-slim-26.12.1",
+          "nar_hash": "sha256:05jlrvhxyngbnhcwkjmhvhk9wdx589dx66vwwpxx8zmxzd0jm0cw",
+          "nar_size": 77253656,
+          "references": [
+            "0568rp7whq8ysn4k2a7jranag23grgqn-openssl-3.5.9-dev",
+            "0pf9iq5gj2wyc6p61blpfdqfm05vgx8b-lief-1.0.0",
+            "3b82f4rpb5j0s7p6yiz7j2jan38ga9m9-libffi-3.8.0",
+            "4g405kd8d55bs9w4jdz3zmb5f7dqzszz-hdrhistogram_c-0.11.10",
+            "4q9bgn1lqkxsqbd3dalz4xwvhrzd33ng-temporal_capi-0.2.6",
+            "57s5d87yy7ll1fpkk2xgrjhkpcp8dwz6-nghttp3-1.18.0",
+            "6n0mzy62p7gi2wms4h8v677yry3ivhwh-simdutf-9.2.1",
+            "9ywxd70ar7c1sz8cypspaj4zpnmw9l2v-libuv-1.53.0-dev",
+            "a4wnz1zimjla18kgrp0x9ljz0vxyyyxn-simdjson-4.6.11",
+            "aaq8c9d20ws8fywmn9n3g4skk6ljz2yw-zlib-1.3.2-dev",
+            "arspcb0pa15f9f2b079k1kpqik297fxz-zlib-1.3.2",
+            "bq784vzc35d2bq44j5xs4lszg0hmz4i2-nodejs-slim-26.12.1",
+            "fhlsf5pp8bav1icxn96mad88qfykgm08-brotli-1.2.0-lib",
+            "g0278qlsdqkcgciqylpq95g6v6bjxbhb-nghttp2-1.70.0-lib",
+            "g6ayq0j6ywpv4dfhrq2c6vkfm32h6b57-sqlite-3.53.3",
+            "ipmf8sagqkyr16l2l1l0k0d9np5xbi57-abseil-cpp-20260817.0",
+            "jnydv03kl75vfnyzb7lyb63kl2kqmwwh-ngtcp2-1.23.0",
+            "jrj60nz430y9nikm92jim5wszsq0mqls-c-ares-1.34.8",
+            "k95ifvjasj6y3indnbk0l5sqs7mrj7zy-libuv-1.53.0",
+            "lpj61lq6ricdhdkz9ss3s9cg8rikbhq6-nbytes-0.1.4",
+            "nby18703h46qghfpy365yy99hz7nc89y-ada-4.0.0",
+            "pnfqc3xvk68sfni9n3j511h1syb26rmy-openssl-3.5.9",
+            "pxm1s6cadz7cjmkh3sximpq7nj2666vp-llhttp-9.4.3",
+            "qa3j5zvp29rdwfs7ykb4cnx6wzacn1lr-zstd-1.5.7",
+            "rdly68s8y8alild9v058nyyalq3kf45z-gtest-1.18.0",
+            "y3p9md9d5k8mf3976szrj2xa7l7gsyn2-libhwy-1.4.0",
+            "ylnp8zd34xqwxjvk4kqhgv71x7ikc13c-icu4c-78.3",
+            "zgx6d94hh9sx2zrgisfwphf9j2lxc3ar-merve-1.2.2",
+            "zpmcffwayfl7rk18xb8sln8xx2mycij1-uvwasi-0.0.23"
+          ]
         },
         {
           "hash_name": "brg965nzdn7k33q7wcqf8376y4ndjdh3-adv_cmds-237",
@@ -963,9 +988,6 @@
           ]
         },
         {
-          "hash_name": "drpfgdrfjmyf5vjr11sypb6khcns269g-playwright-browsers-1.56.1"
-        },
-        {
           "hash_name": "dv3gqilrzcdl2w97kmsn9pkq9ds2k2dn-libpsl-0.21.5",
           "nar_hash": "sha256:17ird6jhxh759qbw5lqjzlmdbnkcmr2kypbr236kxs90iyv36w9f",
           "nar_size": 158992,
@@ -985,6 +1007,14 @@
             "3y1a1wg58jqc8amfp8ailvpq4iq6az4j-perl5.42.3-Crypt-URandom-0.55",
             "f1jdklss1yx9c5hgclym6xh20y2rwkzb-perl5.42.3-Authen-SASL-2.2100",
             "yhi1iyrh3z0pv2lq304pg3kji0543vz1-perl5.42.3-Digest-HMAC-1.05"
+          ]
+        },
+        {
+          "hash_name": "fhlsf5pp8bav1icxn96mad88qfykgm08-brotli-1.2.0-lib",
+          "nar_hash": "sha256:1qakpj8pyip34nwydccwr410aii05g624q4xcdcz586yafbal885",
+          "nar_size": 976000,
+          "references": [
+            "fhlsf5pp8bav1icxn96mad88qfykgm08-brotli-1.2.0-lib"
           ]
         },
         {
@@ -1106,19 +1136,6 @@
           ]
         },
         {
-          "hash_name": "i376rizbw75rswsg2qlk47wj4zz3biqq-nodejs-24.21.0",
-          "nar_hash": "sha256:1lj12q3wawmi58rxqsr1axl6bpfmyvdw13j2b6rm1sbpmhx4pvib",
-          "nar_size": 779744,
-          "references": [
-            "0568rp7whq8ysn4k2a7jranag23grgqn-openssl-3.5.9-dev",
-            "27a4dh0vl268rvw3xqxxcifyzh6h3hm5-nodejs-slim-24.21.0-corepack",
-            "9ywxd70ar7c1sz8cypspaj4zpnmw9l2v-libuv-1.53.0-dev",
-            "a2v4cjj3vsy455nxxgdi3hfq46qic0wq-nodejs-slim-24.21.0",
-            "aaq8c9d20ws8fywmn9n3g4skk6ljz2yw-zlib-1.3.2-dev",
-            "v0ha2s56mbqkv0bbnqdzwc8xj0cxxs9p-nodejs-slim-24.21.0-npm"
-          ]
-        },
-        {
           "hash_name": "i5cj4j94rqvkgawc6r5qcj8hyxcq60dg-zlib-1.3.2-static",
           "nar_hash": "sha256:0jkdvhkdwn2a5kcpxzfz5gqym16rczvm93h1yb8cah38rn442z10",
           "nar_size": 111416,
@@ -1129,6 +1146,15 @@
           "nar_hash": "sha256:0vlcfc9sa9bdr9hadmc9jhrcmlnmh95dwjvq3dvz6x9d9daqx98y",
           "nar_size": 34816,
           "references": []
+        },
+        {
+          "hash_name": "ipmf8sagqkyr16l2l1l0k0d9np5xbi57-abseil-cpp-20260817.0",
+          "nar_hash": "sha256:0mp0wmbnd7mv6dx137jvm74w28im90k0pfl63xlm7855vw0a1xxn",
+          "nar_size": 6621952,
+          "references": [
+            "ipmf8sagqkyr16l2l1l0k0d9np5xbi57-abseil-cpp-20260817.0",
+            "rdly68s8y8alild9v058nyyalq3kf45z-gtest-1.18.0"
+          ]
         },
         {
           "hash_name": "iq8g1j0q7pp4livckzg3pycq4k9nwr3v-ld64-957.1-lib",
@@ -1668,15 +1694,6 @@
           ]
         },
         {
-          "hash_name": "v0ha2s56mbqkv0bbnqdzwc8xj0cxxs9p-nodejs-slim-24.21.0-npm",
-          "nar_hash": "sha256:0akpnr9fp5bm7d5g62ijs9wwjky9l5s5brklqdc3a7gshdakx9vb",
-          "nar_size": 12840920,
-          "references": [
-            "a2v4cjj3vsy455nxxgdi3hfq46qic0wq-nodejs-slim-24.21.0",
-            "i1pdjlwb27ki88zssg5q2h696v1r1m15-bash-5.3p20"
-          ]
-        },
-        {
           "hash_name": "v5jk7n62s6bkp48f9bcain55cgzyszli-libxcrypt-4.5.2",
           "nar_hash": "sha256:1vdhwm3dqjmjh8iwa2xrfk7jk413n5inzxh8g88q3pflgw4200kh",
           "nar_size": 154640,
@@ -1801,6 +1818,14 @@
           ]
         },
         {
+          "hash_name": "y3p9md9d5k8mf3976szrj2xa7l7gsyn2-libhwy-1.4.0",
+          "nar_hash": "sha256:0jd094cisfbmyh1dxz6fw6sn3z3s5canfy0bjsis1hxlqw3s403l",
+          "nar_size": 77656,
+          "references": [
+            "y3p9md9d5k8mf3976szrj2xa7l7gsyn2-libhwy-1.4.0"
+          ]
+        },
+        {
           "hash_name": "yhi1iyrh3z0pv2lq304pg3kji0543vz1-perl5.42.3-Digest-HMAC-1.05",
           "nar_hash": "sha256:1ks46h0xbyk91hi8rd0z7blkrrg0dyjrlaks12c78vyqganjigfy",
           "nar_size": 9432,
@@ -1823,6 +1848,18 @@
           "references": [
             "zdslvbbhrpilsyqvcwxywqrwla35h68p-ncurses-6.6"
           ]
+        },
+        {
+          "hash_name": "zgx6d94hh9sx2zrgisfwphf9j2lxc3ar-merve-1.2.2",
+          "nar_hash": "sha256:1ys4s6dlanm0r2gjapshikw9sy65cza4bm5cr3zwdq7k1jybdc9x",
+          "nar_size": 93288,
+          "references": [
+            "6n0mzy62p7gi2wms4h8v677yry3ivhwh-simdutf-9.2.1",
+            "zgx6d94hh9sx2zrgisfwphf9j2lxc3ar-merve-1.2.2"
+          ]
+        },
+        {
+          "hash_name": "zjkck85kpyd0gj1pkzwzw9blhyx5nnnk-playwright-browsers-1.64.1"
         },
         {
           "hash_name": "znv86xpn7cav9xpmngpaanwwk8c3izqn-perl5.42.3-IO-Socket-SSL-2.083",
@@ -2371,30 +2408,30 @@
             },
             {
               "constraint": {
-                "attr": "nodejs_24",
+                "attr": "nodejs_26",
                 "context": "profiles.dev",
                 "output": null,
                 "system": "aarch64-darwin",
-                "version": "24"
+                "version": "26"
               },
               "package": {
-                "attr_path": "nodejs_24",
+                "attr_path": "nodejs_26",
                 "name": "nodejs",
                 "origin": {
                   "Channel": {
-                    "build": 349494721,
+                    "build": 350324262,
                     "evaluation": 1830620,
                     "release": "nixpkgs/nixpkgs-26.11pre1100667.674a2028661e/"
                   }
                 },
                 "outputs": {
-                  "out": "/nix/store/i376rizbw75rswsg2qlk47wj4zz3biqq-nodejs-24.21.0"
+                  "out": "/nix/store/0avpxpgbx304mqcqkg5cym81vhxzj6p6-nodejs-26.12.1"
                 },
                 "rev": "674a2028661e550a97400c1cc992b9cca9a668a1",
                 "store_paths": [
-                  "/nix/store/i376rizbw75rswsg2qlk47wj4zz3biqq-nodejs-24.21.0"
+                  "/nix/store/0avpxpgbx304mqcqkg5cym81vhxzj6p6-nodejs-26.12.1"
                 ],
-                "version": "24.21.0"
+                "version": "26.12.1"
               }
             },
             {
@@ -2557,7 +2594,7 @@
           }
         },
         "lockSourcePath": "enve.lock",
-        "projectSha256": "72fb7785749e7e2362f290af03378e2b88bf1f3aa81cbb146f437c20d6eaa841"
+        "projectSha256": "e9ba7c9b9a09cc760aec4ce11790523412565e3df607ee60e5841bea53c7e891"
       },
       "environment": {
         "CGO_ENABLED": "0",
@@ -2569,13 +2606,13 @@
         "ENVE_SERVICE_POSTGRES_HOST": "127.0.0.1",
         "ENVE_SERVICE_POSTGRES_PORT": "5442",
         "ENVE_SERVICE_POSTGRES_URL": "postgresql://postgres@127.0.0.1:5442/postgres",
-        "FONTCONFIG_FILE": "$ENVE_STORE_DIR/drpfgdrfjmyf5vjr11sypb6khcns269g-playwright-browsers-1.56.1/fonts.conf",
+        "FONTCONFIG_FILE": "$ENVE_STORE_DIR/zjkck85kpyd0gj1pkzwzw9blhyx5nnnk-playwright-browsers-1.64.1/fonts.conf",
         "GOTOOLCHAIN": "local",
         "MYSQL_HOST": "127.0.0.1",
         "MYSQL_PORT": "${ENVE_SERVICE_MYSQL_PORT}",
         "MYSQL_URL": "mysql://root@127.0.0.1:3316",
         "PGVECTOR_TEST_DB": "host=127.0.0.1 port=${ENVE_SERVICE_POSTGRES_PORT} dbname=grafana_vectors user=grafanatest password=grafanatest sslmode=disable",
-        "PLAYWRIGHT_BROWSERS_PATH": "$ENVE_STORE_DIR/drpfgdrfjmyf5vjr11sypb6khcns269g-playwright-browsers-1.56.1",
+        "PLAYWRIGHT_BROWSERS_PATH": "$ENVE_STORE_DIR/zjkck85kpyd0gj1pkzwzw9blhyx5nnnk-playwright-browsers-1.64.1",
         "PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS": "1",
         "PNPM_MANAGE_PACKAGE_MANAGER_VERSIONS": "false",
         "POSTGRES_HOST": "127.0.0.1",
@@ -2796,19 +2833,19 @@
           "version": "8.4.11"
         },
         "nodejs": {
-          "closure": "i376rizbw75rswsg2qlk47wj4zz3biqq-nodejs-24.21.0",
+          "closure": "0avpxpgbx304mqcqkg5cym81vhxzj6p6-nodejs-26.12.1",
           "outputs": [
-            "i376rizbw75rswsg2qlk47wj4zz3biqq-nodejs-24.21.0"
+            "0avpxpgbx304mqcqkg5cym81vhxzj6p6-nodejs-26.12.1"
           ],
           "source": {
-            "attr": "nodejs_24",
-            "build": 349494721,
+            "attr": "nodejs_26",
+            "build": 350324262,
             "evaluation": 1830620,
             "kind": "channel",
             "release": "nixpkgs/nixpkgs-26.11pre1100667.674a2028661e/",
             "rev": "674a2028661e550a97400c1cc992b9cca9a668a1"
           },
-          "version": "24.21.0"
+          "version": "26.12.1"
         },
         "playwright-browsers": {
           "buildIdentity": [
@@ -2851,8 +2888,8 @@
             "a8r42jvrfindh7hcbg535mab0kylnfr6-bash-interactive-5.3p20",
             "n0wkyhi2v0b89pd9f4663v0lmjmba8p0-unzip-6.0"
           ],
-          "closure": "drpfgdrfjmyf5vjr11sypb6khcns269g-playwright-browsers-1.56.1",
-          "version": "1.56.1"
+          "closure": "zjkck85kpyd0gj1pkzwzw9blhyx5nnnk-playwright-browsers-1.64.1",
+          "version": "1.64.1"
         },
         "pnpm": {
           "buildIdentity": [
@@ -2973,13 +3010,28 @@
             "rev": "674a2028661e550a97400c1cc992b9cca9a668a1"
           },
           "version": "0.11.0"
+        },
+        "unzip": {
+          "closure": "n0wkyhi2v0b89pd9f4663v0lmjmba8p0-unzip-6.0",
+          "outputs": [
+            "n0wkyhi2v0b89pd9f4663v0lmjmba8p0-unzip-6.0"
+          ],
+          "source": {
+            "attr": "unzip",
+            "build": 349619987,
+            "evaluation": 1830620,
+            "kind": "channel",
+            "release": "nixpkgs/nixpkgs-26.11pre1100667.674a2028661e/",
+            "rev": "674a2028661e550a97400c1cc992b9cca9a668a1"
+          },
+          "version": "6.0"
         }
       }
     },
     "aarch64-linux": {
       "binding": {
-        "environment_sha256": "fc3799e81ba332d4b4f032b4686a3533f15a8ae520405ae7b5d691deecf7c34e",
-        "inventory_sha256": "07bae1b4dfdcb2cc805f2695d99e36c7e745e6c3d7e3f4402358362970223340",
+        "environment_sha256": "fc5a3ecea314704bd625f5ab457afeee4e9a1a09cd3e9a9b6dc596d1b5feaed7",
+        "inventory_sha256": "2b420bbc7470cde3179f14e24fd143e02b9e0df67855586b68910b266a58f626",
         "profile": null,
         "version": 2
       },
@@ -3065,6 +3117,16 @@
             "nhphqkv18x8fpf3flz0bsm1h554pawn7-glibc-2.44-57",
             "sylwbbl9zayc3603159mzjnj8fr4bcy5-lz4-1.10.0-lib",
             "wsv7fvzmr9d8didrym4ds4ynjis8v2n1-util-linux-minimal-2.42.4-login"
+          ]
+        },
+        {
+          "hash_name": "0qgxilvvcji3yrxanqc9g6kwrc625z64-libhwy-1.4.0",
+          "nar_hash": "sha256:1779ar14xgqanw870rgbjykq4yg46w3zf0q0hp9qg1n52gcfhq3h",
+          "nar_size": 155856,
+          "references": [
+            "0qgxilvvcji3yrxanqc9g6kwrc625z64-libhwy-1.4.0",
+            "nhphqkv18x8fpf3flz0bsm1h554pawn7-glibc-2.44-57",
+            "nhrkwapk0zzzmc8x1f2k24qpyz9gy5qb-gcc-16.2.0-lib"
           ]
         },
         {
@@ -3368,6 +3430,9 @@
           "references": []
         },
         {
+          "hash_name": "3vh5l0d10k0vgmv5vrz3n34wsnn6pd6r-playwright-browsers-1.64.1"
+        },
+        {
           "hash_name": "3vmr8i728qd2xw01rdpiadcg88x6d5xn-libxrandr-1.5.5-dev",
           "nar_hash": "sha256:0hlnvrp56k5j2bdkxlp260zrf92b3pmb56v89jgws6kjmq7fgjxa",
           "nar_size": 19376,
@@ -3597,19 +3662,6 @@
           ]
         },
         {
-          "hash_name": "6vlx51wp6rjcsb1gcx54hfb7ndf3k2h8-nodejs-24.21.0",
-          "nar_hash": "sha256:08j71686qay7xqw0j7qp6fv76x9an23y99pxgbqy65w3x73a9w5n",
-          "nar_size": 779392,
-          "references": [
-            "5wzih1n026j37403lyfwmidpa0xvl6al-openssl-3.5.9-dev",
-            "743bc92fny9qgsy9bp61y0j0rh639m3d-zlib-1.3.2-dev",
-            "bz5qwik9292pr0ivfbalxnq0mxdlwc2d-nodejs-slim-24.21.0-npm",
-            "g890v8f24xklrl5r3sg2ld4l3ncj8h2g-nodejs-slim-24.21.0",
-            "lb75yza16fcfww1sfpns508d6ffjk362-libuv-1.53.0-dev",
-            "z0rkwr5lap3yzcjcpsimy1brh57sfmy5-nodejs-slim-24.21.0-corepack"
-          ]
-        },
-        {
           "hash_name": "6w94wcdcy9x0l8l2625nviqw0kn0wsz9-llvm-21.1.8-lib",
           "nar_hash": "sha256:0jb7zrznn4ap43zv7n3rcza24074xgdwzswalvqcbzh8mgdv3c5l",
           "nar_size": 559748456,
@@ -3765,12 +3817,30 @@
           ]
         },
         {
+          "hash_name": "8nzz57g1pllw2rfl019ysy6hy147xai9-brotli-1.2.0-lib",
+          "nar_hash": "sha256:1wg8a5nln74x5pmrmp33l09k5rmim7kahqf40s09yq504y41qmlh",
+          "nar_size": 1145312,
+          "references": [
+            "8nzz57g1pllw2rfl019ysy6hy147xai9-brotli-1.2.0-lib",
+            "nhphqkv18x8fpf3flz0bsm1h554pawn7-glibc-2.44-57"
+          ]
+        },
+        {
           "hash_name": "8qawac8svxdsqkxg2dmwl0zz7gjiyr97-dconf-0.49.0-lib",
           "nar_hash": "sha256:0xsim81w5rz8rkf5z41ijxm8wvrjgrsrvnz7fv0a2np7n7y9nwfk",
           "nar_size": 480880,
           "references": [
             "nhphqkv18x8fpf3flz0bsm1h554pawn7-glibc-2.44-57",
             "sni0rr5c7q7l9kxhkal5wvr1xcdmsfxg-glib-2.88.3"
+          ]
+        },
+        {
+          "hash_name": "8xz033jwfdnk9563mqhd9shvaw52mhzi-lief-1.0.0",
+          "nar_hash": "sha256:1msrblg646nws83bcl23v34ahfi1xf52ymvxf8m3psrw7qwjyy7g",
+          "nar_size": 13634120,
+          "references": [
+            "nhphqkv18x8fpf3flz0bsm1h554pawn7-glibc-2.44-57",
+            "nhrkwapk0zzzmc8x1f2k24qpyz9gy5qb-gcc-16.2.0-lib"
           ]
         },
         {
@@ -4024,15 +4094,6 @@
           ]
         },
         {
-          "hash_name": "bz5qwik9292pr0ivfbalxnq0mxdlwc2d-nodejs-slim-24.21.0-npm",
-          "nar_hash": "sha256:1npy394ivxxjd4gjnfaing9rnwps4if58q2272kz1lzyslym59rf",
-          "nar_size": 12759128,
-          "references": [
-            "czx7cscpnqqmc9nwmbpnv2zcvck64mmf-bash-5.3p20",
-            "g890v8f24xklrl5r3sg2ld4l3ncj8h2g-nodejs-slim-24.21.0"
-          ]
-        },
-        {
           "hash_name": "c1h1q4h9bfmb5d0w342qwjmhw8cxkxzc-gcc-16.2.0-libgcc",
           "nar_hash": "sha256:1bi49grzcc7096aimmss91p0wgzh5ixdb92kmlzhhqhs4jjfm4pv",
           "nar_size": 153960,
@@ -4053,6 +4114,16 @@
           "nar_size": 24216,
           "references": [
             "caimwr417x2sfzv5aa5visd00wg290dm-perl5.42.3-Try-Tiny-0.31"
+          ]
+        },
+        {
+          "hash_name": "cczcx5hlzrlq78sb5838drfj8d0nhz37-merve-1.2.2",
+          "nar_hash": "sha256:0c537yc5apmfjyw0idm0vgkca3xn81ylihqw9ql09v26r0n90sxs",
+          "nar_size": 140448,
+          "references": [
+            "bjhfq4xfy180kk8cykdfwwj6rn8glkvy-simdutf-9.2.1",
+            "nhphqkv18x8fpf3flz0bsm1h554pawn7-glibc-2.44-57",
+            "nhrkwapk0zzzmc8x1f2k24qpyz9gy5qb-gcc-16.2.0-lib"
           ]
         },
         {
@@ -4104,6 +4175,12 @@
           "hash_name": "ddvy66njv88c3zgzgkvxfkm4r0za2rza-git-2.56.0-doc",
           "nar_hash": "sha256:07q53hhdw36pvmmpm8anxq94i1y18i4kqa4glly1725g45jam24f",
           "nar_size": 16467408,
+          "references": []
+        },
+        {
+          "hash_name": "dh3wwkih3n12rwx026qarmv2f85733vg-noto-fonts-color-emoji-2.051",
+          "nar_hash": "sha256:0rl6hp9x3lj5bywdpypw0a4g32048bg3kh9k6h8xbypq0bilmcl2",
+          "nar_size": 10674080,
           "references": []
         },
         {
@@ -4266,35 +4343,12 @@
           ]
         },
         {
-          "hash_name": "g890v8f24xklrl5r3sg2ld4l3ncj8h2g-nodejs-slim-24.21.0",
-          "nar_hash": "sha256:1b328wpr6f36hfqj30m9sfc1mzzlaylq75rxdllv7bpw06llb8lx",
-          "nar_size": 76942032,
+          "hash_name": "g2krg7n6s575qv578r37rgb2pzmii59m-temporal_capi-0.2.6",
+          "nar_hash": "sha256:0ma75k4nhx443g4nn1q96v440bz3qchk96gj426m1aqnqv7zhxxf",
+          "nar_size": 1775128,
           "references": [
-            "05j3zngh62zmbqchsg11w3pvravhk1jz-hdrhistogram_c-0.11.10",
-            "33r0n37000780rlkipq2zna6yn0aw20f-openssl-3.5.9",
-            "36ch1yzgw45z0lbs6cffh8hc8k7nv9gb-ada-4.0.0",
-            "4cj6wkw6pa34sz9njh6cccvnfksx5mqc-gtest-1.18.0",
-            "5wzih1n026j37403lyfwmidpa0xvl6al-openssl-3.5.9-dev",
-            "743bc92fny9qgsy9bp61y0j0rh639m3d-zlib-1.3.2-dev",
-            "91qsbvx8w31rd255w8ikficjqg4v3fh4-zstd-1.5.7",
-            "9hfv1d7h4si28wh3p9yb7vlxdc05p6a2-c-ares-1.34.8",
-            "abw4gw7fgpngkxqknz4hhzawk07f5x2g-libuv-1.53.0",
-            "adw348h6dcv6fchrbxc4ka50h9krmskm-nghttp3-1.18.0",
-            "cz57r0bgh8az2215msz1yxkq3phqbjzh-brotli-1.2.0-lib",
-            "dli4xp5h5h5bgfpzd81qflbafmp252hb-ngtcp2-1.23.0",
-            "dm0b6sv46f1pdf3wjzz7jd2yqpddmxkh-nbytes-0.1.4",
-            "fj9c90nq2c0iwh5c92h6rfd9nk3xy5zc-llhttp-9.4.3",
-            "g890v8f24xklrl5r3sg2ld4l3ncj8h2g-nodejs-slim-24.21.0",
-            "lb75yza16fcfww1sfpns508d6ffjk362-libuv-1.53.0-dev",
-            "m9nmssx5b579jv60gqvbdc51bz5cs8gw-icu4c-78.3",
             "nhphqkv18x8fpf3flz0bsm1h554pawn7-glibc-2.44-57",
-            "nhrkwapk0zzzmc8x1f2k24qpyz9gy5qb-gcc-16.2.0-lib",
-            "nw9zbfc171gdsali7fcgl6rayfy5ykkx-zlib-1.3.2",
-            "pk46cw0q2zlysa9yqgnqv1jrq2ll5ndx-simdjson-4.6.11",
-            "v79cmgbpn95r20kbjs0bvp2rhl91pnfz-uvwasi-0.0.23",
-            "vr6k9ydls6wy5ljh7v9g9z77spkfg446-nghttp2-1.70.0-lib",
-            "vyjbj4l5msqs1mwdq0wb8q2lmd9m285n-sqlite-3.53.3",
-            "zagpvp7z1jx5m20cxw75f9jcskqvs0i2-merve-1.2.2"
+            "nhrkwapk0zzzmc8x1f2k24qpyz9gy5qb-gcc-16.2.0-lib"
           ]
         },
         {
@@ -4390,6 +4444,44 @@
           "references": [
             "0pccgl1hspv34592bhh88b6618090fsr-systemd-minimal-libs-262",
             "i42zi7384yq0jng52fyjyf7i8r5cvxz1-systemd-minimal-libs-262-dev"
+          ]
+        },
+        {
+          "hash_name": "iai8ggj1j573ckh8mvnjg3rh0szjfm43-nodejs-slim-26.12.1",
+          "nar_hash": "sha256:0p932ywhy2fvbj898c9mb1nq1q658rcamwksbldfqly1ikh5k6w3",
+          "nar_size": 83993728,
+          "references": [
+            "05j3zngh62zmbqchsg11w3pvravhk1jz-hdrhistogram_c-0.11.10",
+            "0qgxilvvcji3yrxanqc9g6kwrc625z64-libhwy-1.4.0",
+            "33r0n37000780rlkipq2zna6yn0aw20f-openssl-3.5.9",
+            "36ch1yzgw45z0lbs6cffh8hc8k7nv9gb-ada-4.0.0",
+            "4cj6wkw6pa34sz9njh6cccvnfksx5mqc-gtest-1.18.0",
+            "5wzih1n026j37403lyfwmidpa0xvl6al-openssl-3.5.9-dev",
+            "743bc92fny9qgsy9bp61y0j0rh639m3d-zlib-1.3.2-dev",
+            "8nzz57g1pllw2rfl019ysy6hy147xai9-brotli-1.2.0-lib",
+            "8xz033jwfdnk9563mqhd9shvaw52mhzi-lief-1.0.0",
+            "91qsbvx8w31rd255w8ikficjqg4v3fh4-zstd-1.5.7",
+            "9hfv1d7h4si28wh3p9yb7vlxdc05p6a2-c-ares-1.34.8",
+            "abw4gw7fgpngkxqknz4hhzawk07f5x2g-libuv-1.53.0",
+            "adw348h6dcv6fchrbxc4ka50h9krmskm-nghttp3-1.18.0",
+            "bjhfq4xfy180kk8cykdfwwj6rn8glkvy-simdutf-9.2.1",
+            "cczcx5hlzrlq78sb5838drfj8d0nhz37-merve-1.2.2",
+            "dli4xp5h5h5bgfpzd81qflbafmp252hb-ngtcp2-1.23.0",
+            "dm0b6sv46f1pdf3wjzz7jd2yqpddmxkh-nbytes-0.1.4",
+            "fj9c90nq2c0iwh5c92h6rfd9nk3xy5zc-llhttp-9.4.3",
+            "g2krg7n6s575qv578r37rgb2pzmii59m-temporal_capi-0.2.6",
+            "iai8ggj1j573ckh8mvnjg3rh0szjfm43-nodejs-slim-26.12.1",
+            "lb75yza16fcfww1sfpns508d6ffjk362-libuv-1.53.0-dev",
+            "m9nmssx5b579jv60gqvbdc51bz5cs8gw-icu4c-78.3",
+            "nhphqkv18x8fpf3flz0bsm1h554pawn7-glibc-2.44-57",
+            "nhrkwapk0zzzmc8x1f2k24qpyz9gy5qb-gcc-16.2.0-lib",
+            "nw9zbfc171gdsali7fcgl6rayfy5ykkx-zlib-1.3.2",
+            "pk46cw0q2zlysa9yqgnqv1jrq2ll5ndx-simdjson-4.6.11",
+            "v6jjr80v6d0v1379fyilzi38ava7rygz-libffi-3.8.0",
+            "v79cmgbpn95r20kbjs0bvp2rhl91pnfz-uvwasi-0.0.23",
+            "vqh7rx736xca50nim2agg0z4wqzhfq0n-abseil-cpp-20260817.0",
+            "vr6k9ydls6wy5ljh7v9g9z77spkfg446-nghttp2-1.70.0-lib",
+            "vyjbj4l5msqs1mwdq0wb8q2lmd9m285n-sqlite-3.53.3"
           ]
         },
         {
@@ -4515,6 +4607,18 @@
           "references": [
             "jirvs16bd53a8i2xz54q8jhlkv1ya32i-nspr-4.40",
             "nhphqkv18x8fpf3flz0bsm1h554pawn7-glibc-2.44-57"
+          ]
+        },
+        {
+          "hash_name": "jk7srxm8sqcq96n8ly43q8007hmlbzjz-nodejs-26.12.1",
+          "nar_hash": "sha256:135av2ip0671mhznav5k1pnqljrrm7r82v2nksj0bzjqg2cjysdq",
+          "nar_size": 761848,
+          "references": [
+            "5wzih1n026j37403lyfwmidpa0xvl6al-openssl-3.5.9-dev",
+            "743bc92fny9qgsy9bp61y0j0rh639m3d-zlib-1.3.2-dev",
+            "iai8ggj1j573ckh8mvnjg3rh0szjfm43-nodejs-slim-26.12.1",
+            "lb75yza16fcfww1sfpns508d6ffjk362-libuv-1.53.0-dev",
+            "sj0vhv3n3lw956hrb0jakl2rpibq49gg-nodejs-slim-26.12.1-npm"
           ]
         },
         {
@@ -5314,6 +5418,15 @@
           ]
         },
         {
+          "hash_name": "sj0vhv3n3lw956hrb0jakl2rpibq49gg-nodejs-slim-26.12.1-npm",
+          "nar_hash": "sha256:1w0c4l9a00wiawqv9lghlq2ks03y59rd6z1qgapmy5n671vfxzhh",
+          "nar_size": 12791976,
+          "references": [
+            "czx7cscpnqqmc9nwmbpnv2zcvck64mmf-bash-5.3p20",
+            "iai8ggj1j573ckh8mvnjg3rh0szjfm43-nodejs-slim-26.12.1"
+          ]
+        },
+        {
           "hash_name": "skk1al6blzihzn4rkan3h45nd63iv4gy-glibc-iconv-2.44",
           "nar_hash": "sha256:05jxpmdhq67db7326qygak0l3scrfdnl0yclkr1xyfhhzw5llhky",
           "nar_size": 528,
@@ -5416,6 +5529,17 @@
             "rylw5ajszxvn5axzh1vnldapkam8i24d-perl5.42.3-HTTP-Date-6.08",
             "vm7qqhk945drixr51hzgxklcpnaipprr-perl5.42.3-HTTP-Message-7.02",
             "yhcg0icbcbbcg62ijrf1ifh58krp9750-perl5.42.3-Compress-Raw-Zlib-2.222"
+          ]
+        },
+        {
+          "hash_name": "vqh7rx736xca50nim2agg0z4wqzhfq0n-abseil-cpp-20260817.0",
+          "nar_hash": "sha256:0f8llxdsm4h1ngk6qwysnggb8n3kl92f8qcynisipzwl80v1ap9w",
+          "nar_size": 8045768,
+          "references": [
+            "4cj6wkw6pa34sz9njh6cccvnfksx5mqc-gtest-1.18.0",
+            "nhphqkv18x8fpf3flz0bsm1h554pawn7-glibc-2.44-57",
+            "nhrkwapk0zzzmc8x1f2k24qpyz9gy5qb-gcc-16.2.0-lib",
+            "vqh7rx736xca50nim2agg0z4wqzhfq0n-abseil-cpp-20260817.0"
           ]
         },
         {
@@ -5684,15 +5808,6 @@
           ]
         },
         {
-          "hash_name": "z0rkwr5lap3yzcjcpsimy1brh57sfmy5-nodejs-slim-24.21.0-corepack",
-          "nar_hash": "sha256:0qcx27ff48awlwzvj85l60jkaia84h6f5f5c7kjwwkxk4w86r4a9",
-          "nar_size": 620936,
-          "references": [
-            "czx7cscpnqqmc9nwmbpnv2zcvck64mmf-bash-5.3p20",
-            "g890v8f24xklrl5r3sg2ld4l3ncj8h2g-nodejs-slim-24.21.0"
-          ]
-        },
-        {
           "hash_name": "z34ssr0ajr0a4dsrl7frkvb7sxgdmmif-audit-4.2.1-lib",
           "nar_hash": "sha256:06d2gvq0wziz0mgrz3zgb1b3mqvxvv34mhc9j18rimj21pz5aiim",
           "nar_size": 517384,
@@ -5719,18 +5834,6 @@
             "nhphqkv18x8fpf3flz0bsm1h554pawn7-glibc-2.44-57",
             "z8kv2d13nvzcxdlm2b591nbyfccbmryf-libedit-20260508-3.1"
           ]
-        },
-        {
-          "hash_name": "zagpvp7z1jx5m20cxw75f9jcskqvs0i2-merve-1.2.2",
-          "nar_hash": "sha256:1b64kiaiwhv97rxyh3x7fw018c61fz5zl00mkmhcrj4ldi7lr1pg",
-          "nar_size": 140448,
-          "references": [
-            "nhphqkv18x8fpf3flz0bsm1h554pawn7-glibc-2.44-57",
-            "nhrkwapk0zzzmc8x1f2k24qpyz9gy5qb-gcc-16.2.0-lib"
-          ]
-        },
-        {
-          "hash_name": "zcwc9kq5sk6mzxxqsbiivdsbinbd47vw-playwright-browsers-1.56.1"
         },
         {
           "hash_name": "zgmaizk43g99ihidpl181wbf5cfgkj3p-glibc-2.44-57-bin",
@@ -6901,30 +7004,58 @@
             },
             {
               "constraint": {
-                "attr": "nodejs_24",
+                "attr": "nodejs_26",
                 "context": "profiles.dev",
                 "output": null,
                 "system": "aarch64-linux",
-                "version": "24"
+                "version": "26"
               },
               "package": {
-                "attr_path": "nodejs_24",
+                "attr_path": "nodejs_26",
                 "name": "nodejs",
                 "origin": {
                   "Channel": {
-                    "build": 349494722,
+                    "build": 350324269,
                     "evaluation": 1830620,
                     "release": "nixpkgs/nixpkgs-26.11pre1100667.674a2028661e/"
                   }
                 },
                 "outputs": {
-                  "out": "/nix/store/6vlx51wp6rjcsb1gcx54hfb7ndf3k2h8-nodejs-24.21.0"
+                  "out": "/nix/store/jk7srxm8sqcq96n8ly43q8007hmlbzjz-nodejs-26.12.1"
                 },
                 "rev": "674a2028661e550a97400c1cc992b9cca9a668a1",
                 "store_paths": [
-                  "/nix/store/6vlx51wp6rjcsb1gcx54hfb7ndf3k2h8-nodejs-24.21.0"
+                  "/nix/store/jk7srxm8sqcq96n8ly43q8007hmlbzjz-nodejs-26.12.1"
                 ],
-                "version": "24.21.0"
+                "version": "26.12.1"
+              }
+            },
+            {
+              "constraint": {
+                "attr": "noto-fonts-color-emoji",
+                "context": "profiles.dev",
+                "output": null,
+                "system": "aarch64-linux",
+                "version": null
+              },
+              "package": {
+                "attr_path": "noto-fonts-color-emoji",
+                "name": "noto-fonts-color-emoji",
+                "origin": {
+                  "Channel": {
+                    "build": 350235882,
+                    "evaluation": 1830620,
+                    "release": "nixpkgs/nixpkgs-26.11pre1100667.674a2028661e/"
+                  }
+                },
+                "outputs": {
+                  "out": "/nix/store/dh3wwkih3n12rwx026qarmv2f85733vg-noto-fonts-color-emoji-2.051"
+                },
+                "rev": "674a2028661e550a97400c1cc992b9cca9a668a1",
+                "store_paths": [
+                  "/nix/store/dh3wwkih3n12rwx026qarmv2f85733vg-noto-fonts-color-emoji-2.051"
+                ],
+                "version": "2.051"
               }
             },
             {
@@ -7207,7 +7338,7 @@
           }
         },
         "lockSourcePath": "enve.lock",
-        "projectSha256": "72fb7785749e7e2362f290af03378e2b88bf1f3aa81cbb146f437c20d6eaa841"
+        "projectSha256": "e9ba7c9b9a09cc760aec4ce11790523412565e3df607ee60e5841bea53c7e891"
       },
       "environment": {
         "CGO_ENABLED": "0",
@@ -7219,13 +7350,13 @@
         "ENVE_SERVICE_POSTGRES_HOST": "127.0.0.1",
         "ENVE_SERVICE_POSTGRES_PORT": "5442",
         "ENVE_SERVICE_POSTGRES_URL": "postgresql://postgres@127.0.0.1:5442/postgres",
-        "FONTCONFIG_FILE": "$ENVE_STORE_DIR/zcwc9kq5sk6mzxxqsbiivdsbinbd47vw-playwright-browsers-1.56.1/fonts.conf",
+        "FONTCONFIG_FILE": "$ENVE_STORE_DIR/3vh5l0d10k0vgmv5vrz3n34wsnn6pd6r-playwright-browsers-1.64.1/fonts.conf",
         "GOTOOLCHAIN": "local",
         "MYSQL_HOST": "127.0.0.1",
         "MYSQL_PORT": "${ENVE_SERVICE_MYSQL_PORT}",
         "MYSQL_URL": "mysql://root@127.0.0.1:3316",
         "PGVECTOR_TEST_DB": "host=127.0.0.1 port=${ENVE_SERVICE_POSTGRES_PORT} dbname=grafana_vectors user=grafanatest password=grafanatest sslmode=disable",
-        "PLAYWRIGHT_BROWSERS_PATH": "$ENVE_STORE_DIR/zcwc9kq5sk6mzxxqsbiivdsbinbd47vw-playwright-browsers-1.56.1",
+        "PLAYWRIGHT_BROWSERS_PATH": "$ENVE_STORE_DIR/3vh5l0d10k0vgmv5vrz3n34wsnn6pd6r-playwright-browsers-1.64.1",
         "PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS": "1",
         "PNPM_MANAGE_PACKAGE_MANAGER_VERSIONS": "false",
         "POSTGRES_HOST": "127.0.0.1",
@@ -7446,19 +7577,19 @@
           "version": "8.4.11"
         },
         "nodejs": {
-          "closure": "6vlx51wp6rjcsb1gcx54hfb7ndf3k2h8-nodejs-24.21.0",
+          "closure": "jk7srxm8sqcq96n8ly43q8007hmlbzjz-nodejs-26.12.1",
           "outputs": [
-            "6vlx51wp6rjcsb1gcx54hfb7ndf3k2h8-nodejs-24.21.0"
+            "jk7srxm8sqcq96n8ly43q8007hmlbzjz-nodejs-26.12.1"
           ],
           "source": {
-            "attr": "nodejs_24",
-            "build": 349494722,
+            "attr": "nodejs_26",
+            "build": 350324269,
             "evaluation": 1830620,
             "kind": "channel",
             "release": "nixpkgs/nixpkgs-26.11pre1100667.674a2028661e/",
             "rev": "674a2028661e550a97400c1cc992b9cca9a668a1"
           },
-          "version": "24.21.0"
+          "version": "26.12.1"
         },
         "playwright-browsers": {
           "buildIdentity": [
@@ -7512,6 +7643,7 @@
             "banb5k3zng137akxmijx8l51d27wjx6q-at-spi2-core-2.60.6-dev",
             "blbxb64vkcwrrhvd5gvyb00p5l9qdbzr-libxcomposite-0.4.7",
             "brnhnyb8lq3sfkdsdq10i5w85b120imz-bash-interactive-5.3p20",
+            "dh3wwkih3n12rwx026qarmv2f85733vg-noto-fonts-color-emoji-2.051",
             "fbz07ja9rg1d4k1b22p5lc2msv44qdxr-libxext-1.3.7-dev",
             "hkkig8l8xkdn75g84iw7v25silsisk7c-expat-2.9.0-dev",
             "i42zi7384yq0jng52fyjyf7i8r5cvxz1-systemd-minimal-libs-262-dev",
@@ -7543,8 +7675,8 @@
             "yggih4x107bxf2vl162yxy1ypm9jhhwm-liberation-fonts-2.1.5",
             "zgmaizk43g99ihidpl181wbf5cfgkj3p-glibc-2.44-57-bin"
           ],
-          "closure": "zcwc9kq5sk6mzxxqsbiivdsbinbd47vw-playwright-browsers-1.56.1",
-          "version": "1.56.1"
+          "closure": "3vh5l0d10k0vgmv5vrz3n34wsnn6pd6r-playwright-browsers-1.64.1",
+          "version": "1.64.1"
         },
         "pnpm": {
           "buildIdentity": [
@@ -7665,13 +7797,28 @@
             "rev": "674a2028661e550a97400c1cc992b9cca9a668a1"
           },
           "version": "0.11.0"
+        },
+        "unzip": {
+          "closure": "0z7vsl7l9fp4msnrd65m1460z77mmfpl-unzip-6.0",
+          "outputs": [
+            "0z7vsl7l9fp4msnrd65m1460z77mmfpl-unzip-6.0"
+          ],
+          "source": {
+            "attr": "unzip",
+            "build": 349619988,
+            "evaluation": 1830620,
+            "kind": "channel",
+            "release": "nixpkgs/nixpkgs-26.11pre1100667.674a2028661e/",
+            "rev": "674a2028661e550a97400c1cc992b9cca9a668a1"
+          },
+          "version": "6.0"
         }
       }
     },
     "x86_64-linux": {
       "binding": {
-        "environment_sha256": "fc3799e81ba332d4b4f032b4686a3533f15a8ae520405ae7b5d691deecf7c34e",
-        "inventory_sha256": "d80bc66ed00842ef5484995603df36eda812d35694a39e6333603f0f6bd4eabb",
+        "environment_sha256": "fc5a3ecea314704bd625f5ab457afeee4e9a1a09cd3e9a9b6dc596d1b5feaed7",
+        "inventory_sha256": "89f1da90286e1477cbbd8347d844bbd0ea282e03b82d4a9323a03c8613bda9fd",
         "profile": null,
         "version": 2
       },
@@ -7810,6 +7957,12 @@
           ]
         },
         {
+          "hash_name": "1ai5h17z7mr1ls781ijikg32bsmhm8qp-noto-fonts-color-emoji-2.051",
+          "nar_hash": "sha256:101ibfvnq7fm71bvd6ns2md0rbv182q9qd6mbrf9gqvixvnzmc5p",
+          "nar_size": 10674096,
+          "references": []
+        },
+        {
           "hash_name": "1fng2iqlx5y8rqvhjp9203mymzyny6cz-go-1.27.3",
           "nar_hash": "sha256:12a9bmpvm0mcf295v841i03zzbapgip39vahsywsv1xpc5ysq7hp",
           "nar_size": 239090592,
@@ -7848,15 +8001,6 @@
             "3yr53grpp9cfny1ybqsbwd9qgsl9yvlc-util-linux-minimal-2.42.4-bin",
             "j20m4sdmz5ryk8bnh151i6gw2ncq42bb-util-linux-minimal-2.42.4",
             "zsvigijjqf64yym31xg8y8ab37q1bdkg-util-linux-minimal-2.42.4-lib"
-          ]
-        },
-        {
-          "hash_name": "20d48zxzx014s43kdmc2zjksy1h3bhfk-merve-1.2.2",
-          "nar_hash": "sha256:02ypvwzgjfsmmndrqm3zr8n8za7k7vi7cjyznm7b6giajybazzx8",
-          "nar_size": 97944,
-          "references": [
-            "7a2cjhcgzyym5zaz6m4fksw47qvm150w-gcc-16.2.0-lib",
-            "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57"
           ]
         },
         {
@@ -7978,6 +8122,44 @@
           ]
         },
         {
+          "hash_name": "3rpjkwq8xjqidv8xn6kh93y36r6hyn3p-nodejs-slim-26.12.1",
+          "nar_hash": "sha256:0qcs1ancxqsfa1mnxlv07py0p51jryv3bwx0s49zrfkrbiclin0k",
+          "nar_size": 84508816,
+          "references": [
+            "1g70k04n1887qkfn4xn26av35jwcd8n9-libuv-1.53.0",
+            "2aw3zp99m9jc250ajl42rhaankp2kjav-nghttp2-1.70.0-lib",
+            "2b7h6rnav6a0s6npjk8y76f6rjs86lvw-ngtcp2-1.23.0",
+            "3barrjjyf8n1yacihmf0p6f6767qvr0y-simdutf-9.2.1",
+            "3rpjkwq8xjqidv8xn6kh93y36r6hyn3p-nodejs-slim-26.12.1",
+            "42f9bwnz7klk5sj2xplk9brihx1w12h3-abseil-cpp-20260817.0",
+            "5wvim8afrpal7hplba7hv58wdm2bh6y3-brotli-1.2.0-lib",
+            "65sjy017bdrypxl0hb2pzbdshgq20lpf-gtest-1.18.0",
+            "6xqfv5lvb42x59imw1dwqy3wmwpws7hl-lief-1.0.0",
+            "6zv6v5mq7njy12b84yamd3mpzz2qk5yf-libuv-1.53.0-dev",
+            "7a2cjhcgzyym5zaz6m4fksw47qvm150w-gcc-16.2.0-lib",
+            "9bfaa7njpg0sda95wlkq3fqm9pp8mv79-temporal_capi-0.2.6",
+            "9cbhc0f707fmw0qg5fi5wxgyk7y3dznp-merve-1.2.2",
+            "9wwqcw8hr8z47avkdcigdyhclkq62f0a-icu4c-78.3",
+            "a76rmqrp6l3w6h9pppfwzb3s6dzi0y4g-zlib-1.3.2-dev",
+            "f5r77q40xh7rj30dfkajv8y6jwbf4xh2-zstd-1.5.7",
+            "ga4hbzf19rlshci0fdsdf7dha8xsmqj0-c-ares-1.34.8",
+            "i3gz6v86drjzzf5q9887q5zcll0ybygv-simdjson-4.6.11",
+            "ji36842higmp6b06hbbpmzbd59g1c07c-zlib-1.3.2",
+            "kawnc9b3i2asg422vd4xvhpsry9flmh0-llhttp-9.4.3",
+            "lazac5vw20j0pyahzbaxz8z8hyf7m9zf-openssl-3.5.9",
+            "nh206cbbnzcl0pab6ym63sfsglgxazp6-nbytes-0.1.4",
+            "p40lblcsw1qwzqja83rfdpq0l15w4xv7-nghttp3-1.18.0",
+            "pfds9zw10xksh0zr7qplqg1lj9avs2gz-libffi-3.8.0",
+            "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57",
+            "qnwk2r737q9yc6m1532aq52q7z12nqqx-hdrhistogram_c-0.11.10",
+            "s9wx4l2z9yvy6lfvrxqkgjvw46vv91gj-libhwy-1.4.0",
+            "sf6wz1qpa6k6agr0v5ms9ssm476705kb-uvwasi-0.0.23",
+            "vskijpf1jr6ylfcac0yymwmgyd48qh45-ada-4.0.0",
+            "wps4g7kaj73d2zs53a5cfimw1bnb3c99-openssl-3.5.9-dev",
+            "xrzzvmqkmx68f6yj1hy16gjvc1r2bmr8-sqlite-3.53.3"
+          ]
+        },
+        {
           "hash_name": "3sj8msrsym648f35mk3gb3pp385hhk8r-gcc-16.2.0-libgcc",
           "nar_hash": "sha256:1qp62adnjfrnimm7m8qxv40qip8v5zhmaf9dvmcp0smj8zwn07f4",
           "nar_size": 202344,
@@ -8025,6 +8207,17 @@
           "references": [
             "d2pxlphy1s0qcjafl9r23rwr73g8zpyj-linux-headers-7.2",
             "j64r0mf0yy7pvcbavlqidfnpsdnrldj2-glibc-2.44-57-bin",
+            "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57"
+          ]
+        },
+        {
+          "hash_name": "42f9bwnz7klk5sj2xplk9brihx1w12h3-abseil-cpp-20260817.0",
+          "nar_hash": "sha256:0v885z33axjl5n717lcz7b8h8pij1nl36p0zmw8vf6wx8ha0z5qd",
+          "nar_size": 3727864,
+          "references": [
+            "42f9bwnz7klk5sj2xplk9brihx1w12h3-abseil-cpp-20260817.0",
+            "65sjy017bdrypxl0hb2pzbdshgq20lpf-gtest-1.18.0",
+            "7a2cjhcgzyym5zaz6m4fksw47qvm150w-gcc-16.2.0-lib",
             "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57"
           ]
         },
@@ -8158,6 +8351,15 @@
           ]
         },
         {
+          "hash_name": "5nr3j678a4v597ini1w3zv693y7bgicr-nodejs-slim-26.12.1-npm",
+          "nar_hash": "sha256:08qdzdv1yzc4fkqjk09n1rnvl19nnlip56a9bla25ml0p1pi6bif",
+          "nar_size": 12791976,
+          "references": [
+            "3rpjkwq8xjqidv8xn6kh93y36r6hyn3p-nodejs-slim-26.12.1",
+            "nnm9gdr70ihc6zc9298mzz8jpcgaciql-bash-5.3p20"
+          ]
+        },
+        {
           "hash_name": "5pq7mhgzqn8qgv41ff6dj3c2rhkqgalx-libxkbcommon-1.13.2-dev",
           "nar_hash": "sha256:0s44pvn8b3w99fvqbdrpia4jjdp12ggq39vfjxvqzp0zxfnqac69",
           "nar_size": 417152,
@@ -8165,6 +8367,15 @@
             "5pq7mhgzqn8qgv41ff6dj3c2rhkqgalx-libxkbcommon-1.13.2-dev",
             "ghnpw9rvjiz7iski1gl7ifmkrvf8pkrx-xkeyboard-config-2.48",
             "mp9krn4yrm1hwh657y1aa2jv0x97fbin-libxkbcommon-1.13.2"
+          ]
+        },
+        {
+          "hash_name": "5wvim8afrpal7hplba7hv58wdm2bh6y3-brotli-1.2.0-lib",
+          "nar_hash": "sha256:16571rqg0xi66h9q1igwqmcfmqq81in3f3v9qnrv911gdz9xrvix",
+          "nar_size": 997256,
+          "references": [
+            "5wvim8afrpal7hplba7hv58wdm2bh6y3-brotli-1.2.0-lib",
+            "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57"
           ]
         },
         {
@@ -8200,6 +8411,9 @@
           ]
         },
         {
+          "hash_name": "6mfh2sg2bqvb1c2z63iy21iclc4fhgn1-playwright-browsers-1.64.1"
+        },
+        {
           "hash_name": "6vckl9z0k08nadkalhw777i9wwjki4cj-clang-21.1.8-lib",
           "nar_hash": "sha256:0barsnbfy37b54y9xp9pj2nyq6z8x1f00k06v5bpykf38l26nqws",
           "nar_size": 872290976,
@@ -8207,6 +8421,15 @@
             "6vckl9z0k08nadkalhw777i9wwjki4cj-clang-21.1.8-lib",
             "7a2cjhcgzyym5zaz6m4fksw47qvm150w-gcc-16.2.0-lib",
             "mr6cbi3rdy6w5y4cd6875gf4y0pqn0jf-llvm-21.1.8-lib",
+            "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57"
+          ]
+        },
+        {
+          "hash_name": "6xqfv5lvb42x59imw1dwqy3wmwpws7hl-lief-1.0.0",
+          "nar_hash": "sha256:06fn398dnka5qavgncgy4scvv343lq3k6zcp70y6m2r6vzrpxrjw",
+          "nar_size": 13888000,
+          "references": [
+            "7a2cjhcgzyym5zaz6m4fksw47qvm150w-gcc-16.2.0-lib",
             "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57"
           ]
         },
@@ -8395,9 +8618,6 @@
           ]
         },
         {
-          "hash_name": "8y1czqdkzc556qxdziqvij27hhgww54b-playwright-browsers-1.56.1"
-        },
-        {
           "hash_name": "90slnrlyxdl8yamw602y236fa8jcyxwd-oniguruma-6.9.10-lib",
           "nar_hash": "sha256:1rgcym70myyzzql0idkx1xb1avpz98xa5zxc7cwnlm8xzg1rns95",
           "nar_size": 713592,
@@ -8422,6 +8642,25 @@
           "nar_size": 122616,
           "references": [
             "30qgvhl60m3lpnj99l3xjprk776qg3ik-libxcrypt-4.5.2",
+            "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57"
+          ]
+        },
+        {
+          "hash_name": "9bfaa7njpg0sda95wlkq3fqm9pp8mv79-temporal_capi-0.2.6",
+          "nar_hash": "sha256:0n5djvapxpyh41y7xz02dl59j9kzkpbwh7vmjc12mcw2jxqmw5ia",
+          "nar_size": 1676352,
+          "references": [
+            "7a2cjhcgzyym5zaz6m4fksw47qvm150w-gcc-16.2.0-lib",
+            "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57"
+          ]
+        },
+        {
+          "hash_name": "9cbhc0f707fmw0qg5fi5wxgyk7y3dznp-merve-1.2.2",
+          "nar_hash": "sha256:1x5ksnidb6iibcrb47wdybwa072rpr6yswb8zbwh3gf2y7qfb1ba",
+          "nar_size": 89768,
+          "references": [
+            "3barrjjyf8n1yacihmf0p6f6767qvr0y-simdutf-9.2.1",
+            "7a2cjhcgzyym5zaz6m4fksw47qvm150w-gcc-16.2.0-lib",
             "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57"
           ]
         },
@@ -8950,38 +9189,6 @@
           ]
         },
         {
-          "hash_name": "fisi9algzl2pcxb2xfhgp2yw5mzjfdwg-nodejs-slim-24.21.0",
-          "nar_hash": "sha256:10dcy88zy2yila8w8k016nb2x044b7q6ygrmkyf3710hrf4an3ac",
-          "nar_size": 79512944,
-          "references": [
-            "1g70k04n1887qkfn4xn26av35jwcd8n9-libuv-1.53.0",
-            "20d48zxzx014s43kdmc2zjksy1h3bhfk-merve-1.2.2",
-            "2aw3zp99m9jc250ajl42rhaankp2kjav-nghttp2-1.70.0-lib",
-            "2b7h6rnav6a0s6npjk8y76f6rjs86lvw-ngtcp2-1.23.0",
-            "65sjy017bdrypxl0hb2pzbdshgq20lpf-gtest-1.18.0",
-            "6zv6v5mq7njy12b84yamd3mpzz2qk5yf-libuv-1.53.0-dev",
-            "7a2cjhcgzyym5zaz6m4fksw47qvm150w-gcc-16.2.0-lib",
-            "9wwqcw8hr8z47avkdcigdyhclkq62f0a-icu4c-78.3",
-            "a76rmqrp6l3w6h9pppfwzb3s6dzi0y4g-zlib-1.3.2-dev",
-            "b8g0didzv422qhw67dh67wldkc9wkpdf-brotli-1.2.0-lib",
-            "f5r77q40xh7rj30dfkajv8y6jwbf4xh2-zstd-1.5.7",
-            "fisi9algzl2pcxb2xfhgp2yw5mzjfdwg-nodejs-slim-24.21.0",
-            "ga4hbzf19rlshci0fdsdf7dha8xsmqj0-c-ares-1.34.8",
-            "i3gz6v86drjzzf5q9887q5zcll0ybygv-simdjson-4.6.11",
-            "ji36842higmp6b06hbbpmzbd59g1c07c-zlib-1.3.2",
-            "kawnc9b3i2asg422vd4xvhpsry9flmh0-llhttp-9.4.3",
-            "lazac5vw20j0pyahzbaxz8z8hyf7m9zf-openssl-3.5.9",
-            "nh206cbbnzcl0pab6ym63sfsglgxazp6-nbytes-0.1.4",
-            "p40lblcsw1qwzqja83rfdpq0l15w4xv7-nghttp3-1.18.0",
-            "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57",
-            "qnwk2r737q9yc6m1532aq52q7z12nqqx-hdrhistogram_c-0.11.10",
-            "sf6wz1qpa6k6agr0v5ms9ssm476705kb-uvwasi-0.0.23",
-            "vskijpf1jr6ylfcac0yymwmgyd48qh45-ada-4.0.0",
-            "wps4g7kaj73d2zs53a5cfimw1bnb3c99-openssl-3.5.9-dev",
-            "xrzzvmqkmx68f6yj1hy16gjvc1r2bmr8-sqlite-3.53.3"
-          ]
-        },
-        {
           "hash_name": "fq0lrn9lsg7qadvbc3hgclx6ijqrkprf-perl5.42.3-URI-5.36",
           "nar_hash": "sha256:0i29bqkyb1is86qwmcjhrcy2cn8xc272d6xb7197fznc6vsrrlc5",
           "nar_size": 205080,
@@ -9136,15 +9343,6 @@
           ]
         },
         {
-          "hash_name": "hxg65alxvkr4gbpbbxwcn5g8wwz5mygw-nodejs-slim-24.21.0-corepack",
-          "nar_hash": "sha256:1xq2fd07w48rd37jblw5k27pymmf1dcx2qz8rac009rmzjjy888l",
-          "nar_size": 620936,
-          "references": [
-            "fisi9algzl2pcxb2xfhgp2yw5mzjfdwg-nodejs-slim-24.21.0",
-            "nnm9gdr70ihc6zc9298mzz8jpcgaciql-bash-5.3p20"
-          ]
-        },
-        {
           "hash_name": "hy7qsmyk9nbhcylcxbsf2aapsx8c6khb-libssh2-1.11.1",
           "nar_hash": "sha256:1y6cwx6ny3v2ws1pzwndwln16zc1vq23pi6lhn0539sgbpdmaqiy",
           "nar_size": 346704,
@@ -9196,6 +9394,18 @@
           ]
         },
         {
+          "hash_name": "ikg1rrgvc36zyy2rbn0plba3l7na28z0-nodejs-26.12.1",
+          "nar_hash": "sha256:17vh13nf8raj2v2c8c47ycxpji15aaha6rc27gss4l0f1k6lcmz1",
+          "nar_size": 761848,
+          "references": [
+            "3rpjkwq8xjqidv8xn6kh93y36r6hyn3p-nodejs-slim-26.12.1",
+            "5nr3j678a4v597ini1w3zv693y7bgicr-nodejs-slim-26.12.1-npm",
+            "6zv6v5mq7njy12b84yamd3mpzz2qk5yf-libuv-1.53.0-dev",
+            "a76rmqrp6l3w6h9pppfwzb3s6dzi0y4g-zlib-1.3.2-dev",
+            "wps4g7kaj73d2zs53a5cfimw1bnb3c99-openssl-3.5.9-dev"
+          ]
+        },
+        {
           "hash_name": "ikw3fgpqk7zj582g0hxqf8hbbmgl2z39-perl5.42.3-HTTP-CookieJar-0.014",
           "nar_hash": "sha256:1rxqhjjf5rq57d5jm4x4pyirbnal6qf57y2bhxcpxvafkclnlghg",
           "nar_size": 26104,
@@ -9221,19 +9431,6 @@
           "nar_size": 571168,
           "references": [
             "j1dffl1f3g8wphn77q69k4y4ccw36bzw-iana-etc-20251215"
-          ]
-        },
-        {
-          "hash_name": "j1j9b0w3mhpccdli73ycj5w7nf6fkzqz-nodejs-24.21.0",
-          "nar_hash": "sha256:1fqa0q2hd4vi4ch0vl2dvsfi0vbdr3210g2haa017p4p67abx66z",
-          "nar_size": 779392,
-          "references": [
-            "6zv6v5mq7njy12b84yamd3mpzz2qk5yf-libuv-1.53.0-dev",
-            "a76rmqrp6l3w6h9pppfwzb3s6dzi0y4g-zlib-1.3.2-dev",
-            "fisi9algzl2pcxb2xfhgp2yw5mzjfdwg-nodejs-slim-24.21.0",
-            "hxg65alxvkr4gbpbbxwcn5g8wwz5mygw-nodejs-slim-24.21.0-corepack",
-            "kwnng131d6nb0k6vlrm2rr6q77m81ikp-nodejs-slim-24.21.0-npm",
-            "wps4g7kaj73d2zs53a5cfimw1bnb3c99-openssl-3.5.9-dev"
           ]
         },
         {
@@ -9328,15 +9525,6 @@
             "kma4md3lipmmr4kys44hgw96y2zxkf1b-libtirpc-1.3.7",
             "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57",
             "qbvmi6qgfw0ipjvfndy9f6k69rnip42m-krb5-1.22.2-lib"
-          ]
-        },
-        {
-          "hash_name": "kwnng131d6nb0k6vlrm2rr6q77m81ikp-nodejs-slim-24.21.0-npm",
-          "nar_hash": "sha256:0pv8xy1wj6spwzaa18w0vpp393d1bb5hrhxrhgsk35ih69jy1zpv",
-          "nar_size": 12759128,
-          "references": [
-            "fisi9algzl2pcxb2xfhgp2yw5mzjfdwg-nodejs-slim-24.21.0",
-            "nnm9gdr70ihc6zc9298mzz8jpcgaciql-bash-5.3p20"
           ]
         },
         {
@@ -9913,6 +10101,16 @@
             "nnm9gdr70ihc6zc9298mzz8jpcgaciql-bash-5.3p20",
             "s70gz6bvz74c36xigh5m2ab2cqli08cv-pkg-config-wrapper-0.29.2",
             "vl4bvv35nbwmmsd7xlkdw0zixpl7yq29-expand-response-params"
+          ]
+        },
+        {
+          "hash_name": "s9wx4l2z9yvy6lfvrxqkgjvw46vv91gj-libhwy-1.4.0",
+          "nar_hash": "sha256:0a69gd5s0x6yqw1jfggqkzdqq646x2lnvhzz3vp8kv19pvzbi6di",
+          "nar_size": 104816,
+          "references": [
+            "7a2cjhcgzyym5zaz6m4fksw47qvm150w-gcc-16.2.0-lib",
+            "pqyiidz5mi73wv5f91d48s9plcqyj5bz-glibc-2.44-57",
+            "s9wx4l2z9yvy6lfvrxqkgjvw46vv91gj-libhwy-1.4.0"
           ]
         },
         {
@@ -11603,30 +11801,58 @@
             },
             {
               "constraint": {
-                "attr": "nodejs_24",
+                "attr": "nodejs_26",
                 "context": "profiles.dev",
                 "output": null,
                 "system": "x86_64-linux",
-                "version": "24"
+                "version": "26"
               },
               "package": {
-                "attr_path": "nodejs_24",
+                "attr_path": "nodejs_26",
                 "name": "nodejs",
                 "origin": {
                   "Channel": {
-                    "build": 349494723,
+                    "build": 350324261,
                     "evaluation": 1830620,
                     "release": "nixpkgs/nixpkgs-26.11pre1100667.674a2028661e/"
                   }
                 },
                 "outputs": {
-                  "out": "/nix/store/j1j9b0w3mhpccdli73ycj5w7nf6fkzqz-nodejs-24.21.0"
+                  "out": "/nix/store/ikg1rrgvc36zyy2rbn0plba3l7na28z0-nodejs-26.12.1"
                 },
                 "rev": "674a2028661e550a97400c1cc992b9cca9a668a1",
                 "store_paths": [
-                  "/nix/store/j1j9b0w3mhpccdli73ycj5w7nf6fkzqz-nodejs-24.21.0"
+                  "/nix/store/ikg1rrgvc36zyy2rbn0plba3l7na28z0-nodejs-26.12.1"
                 ],
-                "version": "24.21.0"
+                "version": "26.12.1"
+              }
+            },
+            {
+              "constraint": {
+                "attr": "noto-fonts-color-emoji",
+                "context": "profiles.dev",
+                "output": null,
+                "system": "x86_64-linux",
+                "version": null
+              },
+              "package": {
+                "attr_path": "noto-fonts-color-emoji",
+                "name": "noto-fonts-color-emoji",
+                "origin": {
+                  "Channel": {
+                    "build": 350235879,
+                    "evaluation": 1830620,
+                    "release": "nixpkgs/nixpkgs-26.11pre1100667.674a2028661e/"
+                  }
+                },
+                "outputs": {
+                  "out": "/nix/store/1ai5h17z7mr1ls781ijikg32bsmhm8qp-noto-fonts-color-emoji-2.051"
+                },
+                "rev": "674a2028661e550a97400c1cc992b9cca9a668a1",
+                "store_paths": [
+                  "/nix/store/1ai5h17z7mr1ls781ijikg32bsmhm8qp-noto-fonts-color-emoji-2.051"
+                ],
+                "version": "2.051"
               }
             },
             {
@@ -11909,7 +12135,7 @@
           }
         },
         "lockSourcePath": "enve.lock",
-        "projectSha256": "72fb7785749e7e2362f290af03378e2b88bf1f3aa81cbb146f437c20d6eaa841"
+        "projectSha256": "e9ba7c9b9a09cc760aec4ce11790523412565e3df607ee60e5841bea53c7e891"
       },
       "environment": {
         "CGO_ENABLED": "0",
@@ -11921,13 +12147,13 @@
         "ENVE_SERVICE_POSTGRES_HOST": "127.0.0.1",
         "ENVE_SERVICE_POSTGRES_PORT": "5442",
         "ENVE_SERVICE_POSTGRES_URL": "postgresql://postgres@127.0.0.1:5442/postgres",
-        "FONTCONFIG_FILE": "$ENVE_STORE_DIR/8y1czqdkzc556qxdziqvij27hhgww54b-playwright-browsers-1.56.1/fonts.conf",
+        "FONTCONFIG_FILE": "$ENVE_STORE_DIR/6mfh2sg2bqvb1c2z63iy21iclc4fhgn1-playwright-browsers-1.64.1/fonts.conf",
         "GOTOOLCHAIN": "local",
         "MYSQL_HOST": "127.0.0.1",
         "MYSQL_PORT": "${ENVE_SERVICE_MYSQL_PORT}",
         "MYSQL_URL": "mysql://root@127.0.0.1:3316",
         "PGVECTOR_TEST_DB": "host=127.0.0.1 port=${ENVE_SERVICE_POSTGRES_PORT} dbname=grafana_vectors user=grafanatest password=grafanatest sslmode=disable",
-        "PLAYWRIGHT_BROWSERS_PATH": "$ENVE_STORE_DIR/8y1czqdkzc556qxdziqvij27hhgww54b-playwright-browsers-1.56.1",
+        "PLAYWRIGHT_BROWSERS_PATH": "$ENVE_STORE_DIR/6mfh2sg2bqvb1c2z63iy21iclc4fhgn1-playwright-browsers-1.64.1",
         "PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS": "1",
         "PNPM_MANAGE_PACKAGE_MANAGER_VERSIONS": "false",
         "POSTGRES_HOST": "127.0.0.1",
@@ -12148,19 +12374,19 @@
           "version": "8.4.11"
         },
         "nodejs": {
-          "closure": "j1j9b0w3mhpccdli73ycj5w7nf6fkzqz-nodejs-24.21.0",
+          "closure": "ikg1rrgvc36zyy2rbn0plba3l7na28z0-nodejs-26.12.1",
           "outputs": [
-            "j1j9b0w3mhpccdli73ycj5w7nf6fkzqz-nodejs-24.21.0"
+            "ikg1rrgvc36zyy2rbn0plba3l7na28z0-nodejs-26.12.1"
           ],
           "source": {
-            "attr": "nodejs_24",
-            "build": 349494723,
+            "attr": "nodejs_26",
+            "build": 350324261,
             "evaluation": 1830620,
             "kind": "channel",
             "release": "nixpkgs/nixpkgs-26.11pre1100667.674a2028661e/",
             "rev": "674a2028661e550a97400c1cc992b9cca9a668a1"
           },
-          "version": "24.21.0"
+          "version": "26.12.1"
         },
         "playwright-browsers": {
           "buildIdentity": [
@@ -12199,6 +12425,7 @@
           ],
           "buildInputs": [
             "0c701ppqas1m3ldi0l7yzgbjqzc4i0xa-libxext-1.3.7",
+            "1ai5h17z7mr1ls781ijikg32bsmhm8qp-noto-fonts-color-emoji-2.051",
             "2i6275l3cc1y4iy7gi6p6v4h51wlr1xs-alsa-lib-1.2.16.1-dev",
             "3zlgjcfm8j3nscrldjv8izxciybg0nh3-glibc-2.44-57-dev",
             "4kj51k0kzrbwx5m4h3fpjkkl5wc2gdbd-alsa-lib-1.2.16.1",
@@ -12245,8 +12472,8 @@
             "xpaz3fi6ibqxb9sla4gjlp0c82v566y8-gcc-16.2.0",
             "zwyq3fbja6an15mcv9jvfz0fm8d7q64v-nspr-4.40-dev"
           ],
-          "closure": "8y1czqdkzc556qxdziqvij27hhgww54b-playwright-browsers-1.56.1",
-          "version": "1.56.1"
+          "closure": "6mfh2sg2bqvb1c2z63iy21iclc4fhgn1-playwright-browsers-1.64.1",
+          "version": "1.64.1"
         },
         "pnpm": {
           "buildIdentity": [
@@ -12367,6 +12594,21 @@
             "rev": "674a2028661e550a97400c1cc992b9cca9a668a1"
           },
           "version": "0.11.0"
+        },
+        "unzip": {
+          "closure": "9ika5s969fh9ayh4js9kd3j1n4lq8knq-unzip-6.0",
+          "outputs": [
+            "9ika5s969fh9ayh4js9kd3j1n4lq8knq-unzip-6.0"
+          ],
+          "source": {
+            "attr": "unzip",
+            "build": 349619989,
+            "evaluation": 1830620,
+            "kind": "channel",
+            "release": "nixpkgs/nixpkgs-26.11pre1100667.674a2028661e/",
+            "rev": "674a2028661e550a97400c1cc992b9cca9a668a1"
+          },
+          "version": "6.0"
         }
       }
     }

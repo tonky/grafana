@@ -25,6 +25,7 @@ let backendSources = [
 ]
 let backendTrees = [
 	"pkg", "apps", "kinds", "conf", "emails", "public/emails", "public/views", "public/dashboards",
+	"public/img/logo_transparent_400x.png",
 	"public/app/plugins", "public/api-enterprise-spec.json", "public/api-merged.json",
 	"packages/grafana-schema/src", "packages/grafana-data/src/types/featureToggles.gen.ts",
 	"packages/grafana-runtime/src/internal/openFeature",
@@ -288,6 +289,10 @@ let plugins = {
 }
 
 pipeline: {
+	// Measured on linux2 (ts-jest with isolatedModules): a warm jest transform cache records
+	// the same footprints as a cold one, so enact-node/2 jest footprints stay current
+	// (FINDINGS#F-js-jest-transform-cache-keeps-reads).
+	analysis: jest_cache_keeps_reads: true
 	analysis: derived: [
 		{
 			outputs: ["apps/dashboard/pkg/migration/testdata/output/**", "apps/dashboard/pkg/migration/testdata/dev-dashboards-output/**", "apps/dashboard/pkg/migration/conversion/testdata/output/**", "apps/dashboard/pkg/migration/conversion/testdata/migrated_dashboards_output/**"]
@@ -321,7 +326,14 @@ pipeline: {
 				"helpers/go-packages.sh", "helpers/go-test.sh", "helpers/go-lint.sh",
 			]
 			depends_on:      ["root"]
-			workspace_scope: include: ["pkg", "apps", "kinds", "devenv", "public/app/plugins", "hack", "tools", "scripts", ".citools", "embed.go"]
+			workspace_scope: include: [
+				"pkg", "apps", "kinds", "conf/defaults.ini", "devenv", "public/app/plugins",
+				"public/dashboards/default.json", "public/img/logo_transparent_400x.png",
+				"packages/grafana-data/src/types/featureToggles.gen.ts",
+				"packages/grafana-runtime/src/internal/openFeature",
+				"docs/sources/setup-grafana/configure-grafana/feature-toggles/index.md",
+				"hack", "tools", "scripts", ".citools", "embed.go",
+			]
 			jobs: lint: {
 				direct: true, resources: {cpus: 4, memory_mb: 8192}
 				tasks: [
@@ -359,7 +371,7 @@ pipeline: {
 				"helpers/jest-attribution.cjs", "helpers/frontend-lint.sh", "helpers/plugin-typecheck.sh",
 			]
 			depends_on:      ["root"]
-			workspace_scope: include: ["patches", "scripts", "public", "apps/shorturl/plugin/src", "apps/dashboard/pkg/migration/conversion/testdata/input", "pkg/tests/apis/openapi_snapshots", "packages", "e2e-playwright/test-plugins"]
+			workspace_scope: include: ["conf", "patches", "scripts", "public", "apps/shorturl/plugin/src", "apps/dashboard/pkg/migration/conversion/testdata/input", "pkg/tests/apis/openapi_snapshots", "packages", "e2e-playwright/test-plugins"]
 			jobs: lint: (frontendLint & {
 				_up: ""
 				_more: [
@@ -657,8 +669,8 @@ pipeline: {
 			target_scope: {
 				fallback: "all", tests: ["e2e-playwright/**/*.spec.ts"]
 				not_run: [{
-					tests:  ["e2e-playwright/cloud-plugins-suite/azure-monitor.spec.ts", "e2e-playwright/dashboards-search-suite/dashboards-search.spec.ts", "e2e-playwright/plugin-e2e/cloudmonitoring/cloudmonitoring.spec.ts", "e2e-playwright/plugin-e2e/loki/loki.spec.ts", "e2e-playwright/storybook/verify.spec.ts"]
-					reason: "Specs outside playwright.config.ts or skipped by --grep-invert @cloud-plugins (cloud-plugins-suite is @cloud-plugins; storybook runs under playwright.storybook.config.ts; dashboards-search-suite, cloudmonitoring, and loki have no project in playwright.config.ts)"
+					tests:  ["e2e-playwright/cloud-plugins-suite/azure-monitor.spec.ts", "e2e-playwright/dashboards-search-suite/dashboards-search.spec.ts", "e2e-playwright/storybook/verify.spec.ts"]
+					reason: "Specs outside playwright.config.ts or skipped by --grep-invert @cloud-plugins (cloud-plugins-suite is @cloud-plugins; storybook runs under playwright.storybook.config.ts; dashboards-search-suite has no project in playwright.config.ts)"
 				}]
 				// A change whose every file lies in a feature area runs that area's suites
 				// (impl/08); any other file, shared server plumbing included, keeps the suite
