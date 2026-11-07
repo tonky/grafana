@@ -42,7 +42,7 @@ pipeline: schema.#Pipeline & {
 		// Runner sizes within ibp8/mac1 shared host budget (agentic/KNOWLEDGE.md tonky-ci).
 		workers: {
 			standard: {
-				labels:          ["self-hosted", "Linux", "X64", "tonky-ci"]
+				labels:          ["self-hosted", "Linux", "X64", "tonky-ci", "ibp8"]
 				tier:            "dedicated"
 				available:       1
 				cost_per_min:    0.010
@@ -58,18 +58,32 @@ pipeline: schema.#Pipeline & {
 				}
 			}
 			arm64: {
-				labels:          ["self-hosted", "Linux", "ARM64", "tonky-ci"]
+				labels:          ["self-hosted", "Linux", "ARM64", "tonky-ci", "mac1"]
 				tier:            "dedicated"
 				available:       1
-				cost_per_min:    0.008
+				cost_per_min:    0.010
 				timeout_minutes: 60
 				pool: {
 					cpus:      16
 					memory_mb: 36864
+					floor: {cpus: 4, memory_mb: 8192} // mac1 under its lane clamp (KNOWLEDGE `tonky-ci` load clamp)
 					sizes: {
 						"tonky-ci-s": {cpus: 2, memory_mb: 4096}
 						"tonky-ci-m": {cpus: 4, memory_mb: 8192}
 						"tonky-ci-l": {cpus: 6, memory_mb: 13312}
+					}
+				}
+			}
+			l7: {
+				// A second X64 host (8c/14G): s and m only; a gate lane holding l7 drains it to zero.
+				// A size costs the rate times its share of the largest size: 0.006 prices its m as
+				// the 13 GB pools price theirs.
+				labels: ["self-hosted", "Linux", "X64", "tonky-ci", "l7"], tier: "dedicated", available: 1, cost_per_min: 0.006, timeout_minutes: 60
+				pool: {
+					cpus: 8, memory_mb: 12288
+					sizes: {
+						"tonky-ci-s": {cpus: 2, memory_mb: 4096}
+						"tonky-ci-m": {cpus: 4, memory_mb: 8192}
 					}
 				}
 			}
@@ -89,17 +103,6 @@ pipeline: schema.#Pipeline & {
 			layout:   "staged"
 			services: "on_demand"
 			stages:   _stages
-		}
-		nightly: {
-			layout:   "staged"
-			scope:    "all"
-			services: "on_demand"
-			triggers: {
-				workflow_dispatch: true
-			}
-			stages: [
-				{name: "tests", matrix: true, select: [J.test], fail_fast: false, services: "on_demand"},
-			]
 		}
 	}
 }

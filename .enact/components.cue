@@ -305,7 +305,7 @@ pipeline: {
 			title: "Environment, pipeline and CI"
 			root:  "."
 			watch_paths: [
-				"enve.cue", "enve.lock", ".enact/**", "cue.mod/**", ".github/workflows/ci.yml", ".github/workflows/nightly.yml",
+				"enve.cue", "enve.lock", ".enact/**", "cue.mod/**", ".github/workflows/ci.yml",
 				"bin/linux-x86_64/**", "bin/linux-aarch64/**", "bin/macos-aarch64/**", "bin/enact", "bin/enve",
 				"helpers/lib.sh", "helpers/postgres-setup.sh", "helpers/mysql-setup.sh",
 				".gitattributes", ".gitignore", ".ignore", ".editorconfig", "data/**",
@@ -454,9 +454,6 @@ pipeline: {
 				watch_paths:     list.Concat([backendSources, databaseSetup[db]])
 				depends_on:      ["go-root", "base"]
 				workspace_scope: include: backendTrees
-				// Pure Go (CGO_ENABLED=0) against services enve.lock has for both Linux
-				// architectures, with enact and enve built for both: either pool runs it.
-				arch:            "any"
 				resources:       {cpus: [if db == "sqlite" {4}, 2][0], memory_mb: [if db == "sqlite" {8192}, 4096][0]}
 				shards:          [if db == "sqlite" {4}, 8][0]
 				if db == "sqlite" {
