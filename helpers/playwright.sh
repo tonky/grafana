@@ -222,12 +222,38 @@ else
     log_phase server_ready skipped "reason=external_grafana_url"
 fi
 
+effective_cpus() {
+    local cpus
+    cpus="$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"
+    if [[ -r /sys/fs/cgroup/cpu.max ]]; then
+        local quota period
+        read -r quota period < /sys/fs/cgroup/cpu.max || true
+        if [[ "${quota:-max}" != "max" && -n "${period:-}" && "${period}" -gt 0 ]]; then
+            local cg_cpus=$(( (quota + period - 1) / period ))
+            if [[ "${cg_cpus}" -gt 0 && "${cg_cpus}" -lt "${cpus}" ]]; then
+                cpus="${cg_cpus}"
+            fi
+        fi
+    fi
+    echo "${cpus}"
+}
+
+pw_workers="${PLAYWRIGHT_WORKERS:-}"
+if [[ -z "${pw_workers}" ]]; then
+    if [[ "$(effective_cpus)" -le 4 ]]; then
+        pw_workers=2
+    fi
+fi
+
 args=(
     test
     --grep-invert @cloud-plugins
     --reporter=list
     "--output=${work}/results"
 )
+if [[ -n "${pw_workers}" ]]; then
+    args+=("--workers=${pw_workers}")
+fi
 if [[ ${#targets[@]} -eq 0 && "${shard_total}" -gt 1 ]]; then
     args+=("--shard=${shard_index}/${shard_total}")
 fi
@@ -239,7 +265,7 @@ if [[ ${#targets[@]} -gt 0 ]]; then
 fi
 
 pw_start="$(date +%s)"
-log_phase playwright_test start "mode=${playwright_mode} shard=${shard_index}/${shard_total} targets=${#targets[@]}"
+log_phase playwright_test start "mode=${playwright_mode} shard=${shard_index}/${shard_total} targets=${#targets[@]} workers=${pw_workers:-config}"
 pw_rc=0
 if [[ "${playwright_mode}" == "direct" ]]; then
     # Use the staged root Playwright binary directly so pnpm never triggers a
