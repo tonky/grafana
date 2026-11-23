@@ -239,14 +239,14 @@ let packages = {
 		dir: "grafana-data", deps: ["@grafana/i18n", "@grafana/schema"], shards: 2
 		lint_more: [
 			(themesVerify & {_cwd: " -C ../..", _up: "../../", _include: ["packages/grafana-data/src/themes/**", "packages/grafana-data/scripts/generateSchema.ts"]}).out,
-			(rootI18nVerify & {_cwd: " --cwd ../..", _include: ["packages/grafana-data/**/*.{ts,tsx}"]}).out,
+			(rootI18nVerify & {_cwd: " -C ../..", _include: ["packages/grafana-data/**/*.{ts,tsx}"]}).out,
 		]
 	}
 	// Its tests import @grafana/test-utils (a dev dependency), which imports
 	// @grafana/runtime, which depends on @grafana/ui: adding that edge would close a cycle.
 	"@grafana/ui": {
 		dir: "grafana-ui", deps: ["@grafana/data", "@grafana/e2e-selectors", "@grafana/i18n", "@grafana/schema"], shards: 4, max_circular: 5
-		lint_more: [(rootI18nVerify & {_cwd: " --cwd ../..", _include: ["packages/grafana-ui/**/*.{ts,tsx}"]}).out]
+		lint_more: [(rootI18nVerify & {_cwd: " -C ../..", _include: ["packages/grafana-ui/**/*.{ts,tsx}"]}).out]
 	}
 	"@grafana/runtime": {dir: "grafana-runtime", deps: ["@grafana/data", "@grafana/schema", "@grafana/ui"]}
 	"@grafana/api-clients": {
