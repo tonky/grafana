@@ -27,7 +27,7 @@ pipeline: schema.#Pipeline & {
 	toolchain: node: package_manager: "pnpm"
 	ci: {
 		soft_placement: {fallback_seconds: 15}
-		scheduler: {makespan_tolerance: 1.05}
+		scheduler: {makespan_tolerance: 1.05, default_task_sec: 180}
 		history: {workflow: ".github/workflows/ci.yml"}
 		diagnostic_paths: [
 			".enact/state/diagnostics/grafana-e2e/*/results/**",

@@ -5,6 +5,8 @@
 # datasource/*/dist), the test plugins (e2e-playwright/test-plugins/*/dist) and
 # the catalog plugins start-server links (data/plugins-bundled, a download).
 set -euo pipefail
+export pnpm_config_verify_deps_before_run=false
+[[ -n "${ENACT_PNPM_STORE:-}" ]] && export pnpm_config_store_dir="${ENACT_PNPM_STORE}"
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 
@@ -32,6 +34,7 @@ echo "[e2e-build] phase=install_check event=done ts=${script_start} prepared=${E
 
 run_phase build-go make build-go
 run_phase build-frontend pnpm run build
+run_phase build-swagger pnpm run build:swagger
 run_phase e2e-plugin-build pnpm run e2e:plugin:build
 run_phase build-catalog-plugins-data make build-catalog-plugins-data
 

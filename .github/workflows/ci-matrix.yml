@@ -388,7 +388,7 @@ jobs:
       if: ${{ (toJson(matrix.output_keys) != 'null') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       run: |-
         cat > "$ENACT_OUTPUTS_PRODUCERS_FILE" <<'PRODUCERS_JSON'
-        {"e2e--build":{"job":"e2e:build","paths":"bin/grafana\npublic/build\npublic/app/plugins/datasource/*/dist\ne2e-playwright/test-plugins/*/dist\ndata/plugins-bundled\n.enact/state/outputs/e2e--build.key\n.enact/state/outputs/e2e--build.manifest-v1.json"}}
+        {"e2e--build":{"job":"e2e:build","paths":"bin/grafana\npublic/build\npublic/build-swagger\npublic/app/plugins/datasource/*/dist\ne2e-playwright/test-plugins/*/dist\ndata/plugins-bundled\n.enact/state/outputs/e2e--build.key\n.enact/state/outputs/e2e--build.manifest-v1.json"}}
         PRODUCERS_JSON
       env:
         ENACT_OUTPUTS_PRODUCERS_FILE: ${{ runner.temp }}/enact-outputs-producers.json
@@ -423,6 +423,7 @@ jobs:
         path: |-
           bin/grafana
           public/build
+          public/build-swagger
           public/app/plugins/datasource/*/dist
           e2e-playwright/test-plugins/*/dist
           data/plugins-bundled

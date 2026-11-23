@@ -657,9 +657,9 @@ pipeline: {
 			jobs: {
 				lint: (frontendLint & {_up: "../"}).out
 				build: {
-					services: false, resources: {cpus: 4, memory_mb: 10240}
+					services: false, arch: "x86_64", arch_reason: "build native grafana-server on X64 so downstream e2e:test shards fan out across ibp8 and free ubuntu-24.04 runners instead of queuing behind lone ARM64 mac1", resources: {cpus: 4, memory_mb: 10240}
 					outputs: {
-						paths: ["bin/grafana", "public/build", "public/app/plugins/datasource/*/dist", "e2e-playwright/test-plugins/*/dist", "data/plugins-bundled"]
+						paths: ["bin/grafana", "public/build", "public/build-swagger", "public/app/plugins/datasource/*/dist", "e2e-playwright/test-plugins/*/dist", "data/plugins-bundled"]
 						key:   ["*", "patches/**", "apps/**", "cue.mod/**", "kinds/**", "packages/**", "pkg/**", "public/**", "scripts/**", "e2e-playwright/test-plugins/**", "helpers/e2e-build.sh"]
 					}
 					tasks: [{command: "../helpers/e2e-build.sh", timeout: "40m"}]

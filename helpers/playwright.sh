@@ -110,7 +110,7 @@ allocate_port() {
 # once per run, or restores it in CI, before any shard starts.
 require_built() {
     local missing=()
-    for path in bin/grafana public/build data/plugins-bundled; do
+    for path in bin/grafana public/build public/build-swagger/assets-manifest.json data/plugins-bundled; do
         [[ -e "${path}" ]] || missing+=("${path}")
     done
     # pnpm build also builds these standalone core plugins. Without their dist
