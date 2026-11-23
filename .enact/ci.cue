@@ -39,6 +39,7 @@ pipeline: schema.#Pipeline & {
 			repo:       "tonky/grafana"
 			branch:     "perf/ci-showcase"
 		}
+		allow_broad: branch_prefixes: ["mirror-broad/"]
 		// Runner sizes within ibp8/mac1 shared host budget (agentic/KNOWLEDGE.md tonky-ci).
 		workers: {
 			github: {
