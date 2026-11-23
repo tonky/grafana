@@ -13,7 +13,9 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 tests=(
     public/app/features/dashboard/api/ResponseTransformersToBackend.test.ts
+    public/app/features/dashboard/state/DashboardMigratorSingleVersion.test.ts
     public/app/features/dashboard/state/DashboardMigratorToBackend.devDashboards.test.ts
+    public/app/features/dashboard/state/DashboardMigratorToBackend.test.ts
     public/app/features/dashboard-scene/serialization/transformSaveModelV1ToV2.test.ts
     public/app/features/dashboard-scene/serialization/transformSaveModelV2ToV1.test.ts
     public/app/features/dashboard-scene/v2schema/dashboardV2Schema.corpus.test.ts

@@ -44,10 +44,9 @@ jobs:
     if: ${{ inputs.matrix != '{"include":[]}' && inputs.matrix != '[]' && inputs.matrix != '' }}
     strategy:
       fail-fast: false
-      max-parallel: 20
       matrix: ${{ fromJson(inputs.matrix) }}
     runs-on: ${{ matrix.runs_on }}
-    timeout-minutes: 90
+    timeout-minutes: 60
     steps:
     - name: Probe Runner Caches
       id: runner_caches
