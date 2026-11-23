@@ -6,7 +6,13 @@ test('playwright launches headless chromium from the store and renders DOM', asy
   const browsersPath = process.env.PLAYWRIGHT_BROWSERS_PATH;
   expect(browsersPath).toBeTruthy();
   const resolvedPath = realpathSync(browsersPath!);
-  expect(browsersPath!.startsWith('/nix/store/') || resolvedPath.includes('/enve/store/')).toBe(true);
+  const enveStoreDir = process.env.ENVE_STORE_DIR ? realpathSync(process.env.ENVE_STORE_DIR) : null;
+  const inEnveStore =
+    (enveStoreDir !== null &&
+      (resolvedPath === enveStoreDir || resolvedPath.startsWith(`${enveStoreDir}/`))) ||
+    resolvedPath.includes('/enve/store/') ||
+    resolvedPath.includes('/enve-store/');
+  expect(browsersPath!.startsWith('/nix/store/') || inEnveStore).toBe(true);
 
   const headlessDirectories = readdirSync(browsersPath!).filter((entry) =>
     entry.startsWith('chromium_headless_shell-')

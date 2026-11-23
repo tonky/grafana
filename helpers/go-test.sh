@@ -89,10 +89,10 @@ docker_tests() {
         done
     done
     [[ ${#files[@]} -gt 0 ]] || return 0
-    { grep -lsE 'NewAlertmanagerScenario|e2e\.NewScenario' "${files[@]}" 2>/dev/null || true; } | while IFS= read -r file; do
+    { grep -lsE 'NewAlertmanagerScenario|e2e\.NewScenario|StartPublicGitRemote' "${files[@]}" 2>/dev/null || true; } | while IFS= read -r file; do
         awk '
             /^func / { name = ($0 ~ /^func TestIntegration[A-Za-z0-9_]*\(/) ? $2 : ""; sub(/\(.*/, "", name) }
-            name != "" && /NewAlertmanagerScenario|e2e\.NewScenario/ { print name; name = "" }
+            name != "" && /NewAlertmanagerScenario|e2e\.NewScenario|StartPublicGitRemote/ { print name; name = "" }
         ' "${file}"
     done | sort -u
 }

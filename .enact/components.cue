@@ -473,7 +473,7 @@ pipeline: {
 				shards:          [if db == "sqlite" {4}, 8][0]
 				if db == "sqlite" {
 					recorder:         "trace"
-					record_resources: {cpus: 1.5, memory_mb: 4096}
+					record_resources: {cpus: 1.5, memory_mb: 6144}
 				}
 				services: dbServices
 				test:     {command: "helpers/go-test.sh integration {shard_index} {shard_total} {targets}", timeout: "60m", if db != "sqlite" {env: GRAFANA_TEST_DB: db}}

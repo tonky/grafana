@@ -1,6 +1,6 @@
 import { css } from '@emotion/css';
 import { useEffect, useMemo, useState } from 'react';
-import { Controller, FormProvider, type RegisterOptions, useForm, useFormContext, useWatch } from 'react-hook-form';
+import { Controller, FormProvider, type RegisterOptions, useForm, useFormContext } from 'react-hook-form';
 import { useFirstMountState } from 'react-use';
 
 import { type GrafanaTheme2, type SelectableValue } from '@grafana/data';
@@ -154,6 +154,7 @@ export function GrafanaEvaluationBehaviorStep({
   const [showErrorHandling, setShowErrorHandling] = useState(false);
 
   const {
+    watch,
     setValue,
     getValues,
     clearErrors,
@@ -162,10 +163,14 @@ export function GrafanaEvaluationBehaviorStep({
     register,
   } = useFormContext<RuleFormValues>();
 
-  const [group, type, isPaused, folder, evaluateEvery, isUngroupedRule] = useWatch({
-    control,
-    name: ['group', 'type', 'isPaused', 'folder', 'evaluateEvery', 'isUngroupedRuleGroup'],
-  });
+  const [group, type, isPaused, folder, evaluateEvery, isUngroupedRule] = watch([
+    'group',
+    'type',
+    'isPaused',
+    'folder',
+    'evaluateEvery',
+    'isUngroupedRuleGroup',
+  ]);
 
   const isGrafanaAlertingRule = isGrafanaAlertingRuleByType(type);
   const isGrafanaRecordingRule = isGrafanaRecordingRuleByType(type);
@@ -709,12 +714,12 @@ function ForInput({ evaluateEvery }: { evaluateEvery: string }) {
     formState: { errors },
     setValue,
     getValues,
+    watch,
     trigger,
-    control,
   } = useFormContext<RuleFormValues>();
 
   const evaluateForId = 'eval-for-input';
-  const currentPendingPeriod = useWatch({ control, name: 'evaluateFor' });
+  const currentPendingPeriod = watch('evaluateFor');
 
   const isFirstMount = useFirstMountState();
   useEffect(() => {
@@ -773,10 +778,10 @@ function KeepFiringFor({ evaluateEvery }: { evaluateEvery: string }) {
     register,
     formState: { errors },
     setValue,
-    control,
+    watch,
   } = useFormContext<RuleFormValues>();
 
-  const currentKeepFiringFor = useWatch({ control, name: 'keepFiringFor' });
+  const currentKeepFiringFor = watch('keepFiringFor');
   const keepFiringForId = 'keep-firing-for-input';
 
   const setKeepFiringFor = (keepFiringFor: string) => {
