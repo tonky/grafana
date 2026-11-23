@@ -10,6 +10,8 @@
 # dependency's) all of them run. JEST_LIST=1 prints the tests it would run (jest.sh).
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+export pnpm_config_verify_deps_before_run=false
+[[ -n "${ENACT_PNPM_STORE:-}" ]] && export pnpm_config_store_dir="${ENACT_PNPM_STORE}"
 
 tests=(
     public/app/features/dashboard/api/ResponseTransformersToBackend.test.ts

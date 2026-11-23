@@ -24,6 +24,8 @@
 # JEST_LIST=1 prints the test files the run would take instead of running them.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+export pnpm_config_verify_deps_before_run=false
+[[ -n "${ENACT_PNPM_STORE:-}" ]] && export pnpm_config_store_dir="${ENACT_PNPM_STORE}"
 
 project="$(repo_paths "${1:?usage: jest.sh <project> <shard index> <shard total> <tests>... -- [target...]}")"
 shard_index="${2:?shard index}"

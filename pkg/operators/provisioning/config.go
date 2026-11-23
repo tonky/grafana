@@ -39,7 +39,6 @@ import (
 	gitrepo "github.com/grafana/grafana/apps/provisioning/pkg/repository/git"
 	githubrepo "github.com/grafana/grafana/apps/provisioning/pkg/repository/github"
 	"github.com/grafana/grafana/apps/provisioning/pkg/repository/local"
-	provisioningresources "github.com/grafana/grafana/apps/provisioning/pkg/resources"
 	"github.com/grafana/grafana/pkg/registry/apis/provisioning/controller"
 	"github.com/grafana/grafana/pkg/registry/apis/provisioning/informer"
 	"github.com/grafana/grafana/pkg/registry/apis/provisioning/resources"
@@ -212,15 +211,6 @@ func (c *ControllerConfig) UnifiedStorageClient() (resources.ResourceStore, erro
 	return unified, nil
 }
 
-// SupportedResources is the configured provisionable set, which may name collections as wildcards.
-func (c *ControllerConfig) SupportedResources() ([]resources.SupportedResource, error) {
-	supported, err := resources.ParseSupportedResources(c.Settings.ProvisioningResources)
-	if err != nil {
-		return nil, fmt.Errorf("invalid [provisioning] resources configuration: %w", err)
-	}
-	return supported, nil
-}
-
 // Clients Clients are clients that are used to connect to the different API servers.
 func (c *ControllerConfig) Clients() (resources.ClientFactory, error) {
 	if c.clients != nil {
@@ -257,32 +247,30 @@ func (c *ControllerConfig) Clients() (resources.ClientFactory, error) {
 		provisioning.GROUP:                provisioningServerURL,
 	}
 
-	supportedResources, err := c.SupportedResources()
+	supportedResources, err := resources.ParseSupportedResources(c.Settings.ProvisioningResources)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid [provisioning] resources configuration: %w", err)
 	}
 
-	// Dashboards and folders have dedicated server URLs; every other active resource must
-	// resolve to the aggregated server — failing loudly when it is unset, rather than hitting
-	// "no clients provider for group" at request time. A collection is registered under the
-	// collection group, not its members: those cannot be discovered before there is a client to
-	// discover through.
+	// Dashboards and folders have dedicated server URLs; everything else is served by the
+	// aggregated API server. Skip the built-in groups, then ensure every other active
+	// resource's group resolves to the aggregated server — failing loudly if a resource needs
+	// it and it is unset, rather than hitting "no clients provider for group" at request time.
 	for _, r := range supportedResources {
 		if !r.IsActive() {
 			continue
 		}
-		group := provisioningresources.CollectionGroup(r.Group)
-		switch group {
+		switch r.Group {
 		case resources.DashboardResource.Group, resources.FolderResource.Group, provisioning.GROUP:
 			continue // built-in groups with dedicated server URLs
 		}
-		if _, ok := apiServerURLs[group]; ok {
+		if _, ok := apiServerURLs[r.Group]; ok {
 			continue
 		}
 		if aggregatedServerURL == "" {
 			return nil, fmt.Errorf("aggregated_server_url is required in [operator] section to serve resource %s/%s", r.Group, r.Kind)
 		}
-		apiServerURLs[group] = aggregatedServerURL
+		apiServerURLs[r.Group] = aggregatedServerURL
 	}
 
 	configProviders := make(map[string]apiserver.RestConfigProvider)
