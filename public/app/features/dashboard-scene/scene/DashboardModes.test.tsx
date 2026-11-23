@@ -227,12 +227,7 @@ it('blocks direct edit actions and settings from View', () => {
   expect(getDashboardMode(scene.state)).toBe('view');
 });
 
-async function chooseMode(user: ReturnType<typeof userEvent.setup>, option: RegExp) {
-  await user.click(screen.getByRole('button', { name: /^Dashboard mode:/ }));
-  await user.click(screen.getByRole('menuitemradio', { name: option }));
-}
-
-it('opens the mode picker and switches the editing policy', async () => {
+it('opens the mode picker from the caret and switches the editing policy', async () => {
   const scene = setup();
   render(
     <TestProvider>
@@ -240,19 +235,19 @@ it('opens the mode picker and switches the editing policy', async () => {
     </TestProvider>
   );
   const user = userEvent.setup();
-  await user.click(screen.getByRole('button', { name: 'Dashboard mode: Viewing' }));
+  await user.click(screen.getByRole('button', { name: 'Change dashboard mode' }));
   expect(screen.getByRole('menuitemradio', { name: /View/ })).toBeChecked();
   expect(screen.getAllByRole('menuitemradio').map((item) => item.textContent)).toEqual([
     'ViewingView and explore the dashboard.',
     'EditingManually edit panels, layout, and settings.',
   ]);
+  expect(screen.getByText('View and explore the dashboard.')).toBeInTheDocument();
   await user.click(screen.getByRole('menuitemradio', { name: /Manually edit panels/ }));
-  const button = screen.getByRole('button', { name: 'Dashboard mode: Editing' });
-  expect(button).toHaveAttribute('aria-expanded', 'false');
-  await user.click(button);
+  expect(screen.getByRole('button', { name: 'Change dashboard mode' })).toHaveAttribute('aria-expanded', 'false');
+  await user.click(screen.getByRole('button', { name: 'Change dashboard mode' }));
   expect(screen.getByRole('menuitemradio', { name: /Manually edit panels/ })).toBeChecked();
   await user.keyboard('{Escape}');
-  expect(button).toHaveFocus();
+  expect(screen.getByRole('button', { name: 'Change dashboard mode' })).toHaveFocus();
   expect(isFullDashboardEditing(scene.state)).toBe(true);
 });
 
@@ -268,11 +263,37 @@ it('disables the mode picker in Viewing on mobile when mobileEditDeprecation is 
     </TestProvider>
   );
   const user = userEvent.setup();
-  const button = screen.getByRole('button', { name: 'Dashboard mode: Viewing' });
-  expect(button).toBeDisabled();
-  await user.click(button);
+  expect(screen.getByRole('button', { name: 'Dashboard mode: Viewing' })).toBeDisabled();
+  const caret = screen.getByRole('button', { name: 'Change dashboard mode' });
+  expect(caret).toBeDisabled();
+  await user.click(caret);
   expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   expect(isFullDashboardEditing(dashboard.state)).toBe(false);
+});
+
+it('switches modes directly from the main button and describes the next mode in its tooltip', async () => {
+  const dashboard = setup();
+  render(
+    <TestProvider>
+      <DashboardModePicker dashboard={dashboard} />
+    </TestProvider>
+  );
+  const user = userEvent.setup();
+  await user.hover(screen.getByRole('button', { name: 'Dashboard mode: Viewing' }));
+  expect(await screen.findByRole('tooltip')).toHaveTextContent('Switch to Editing');
+  await user.click(screen.getByRole('button', { name: 'Dashboard mode: Viewing' }));
+  expect(screen.getByRole('button', { name: 'Dashboard mode: Editing' })).toBeInTheDocument();
+  expect(isFullDashboardEditing(dashboard.state)).toBe(true);
+  expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  await user.unhover(screen.getByRole('button', { name: 'Dashboard mode: Editing' }));
+  await user.hover(screen.getByRole('button', { name: 'Dashboard mode: Editing' }));
+  expect(await screen.findByRole('tooltip')).toHaveTextContent('Switch to Viewing');
+  await user.click(screen.getByRole('button', { name: 'Dashboard mode: Editing' }));
+  expect(screen.getByRole('button', { name: 'Dashboard mode: Viewing' })).toBeInTheDocument();
+  expect(isFullDashboardEditing(dashboard.state)).toBe(false);
+  expect(
+    jest.mocked(reportInteraction).mock.calls.filter(([event]) => event === 'dashboards_mode_picker_opened')
+  ).toEqual([]);
 });
 
 describe('switching an unsaved new dashboard to Viewing', () => {
@@ -284,7 +305,11 @@ describe('switching an unsaved new dashboard to Viewing', () => {
         <DashboardModePicker dashboard={dashboard} />
       </TestProvider>
     );
-    await chooseMode(userEvent.setup(), /Save the dashboard before switching to Viewing/);
+    const user = userEvent.setup();
+    const editingButton = screen.getByRole('button', { name: 'Dashboard mode: Editing' });
+    await user.hover(editingButton);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Save the dashboard before switching to Viewing.');
+    await user.click(editingButton);
     await waitFor(() => expect(dashboard.state.overlay).toBeInstanceOf(SaveDashboardDrawer));
     expect(getDashboardMode(dashboard.state)).toBe('edit');
     const drawer = dashboard.state.overlay;
@@ -319,6 +344,21 @@ describe('switching an unsaved new dashboard to Viewing', () => {
     expect(screen.getByRole('button', { name: 'Dashboard mode: Editing' })).toBeInTheDocument();
   });
 
+  it('opens the same save drawer from the Viewing option in the mode menu', async () => {
+    const dashboard = setup(false, true);
+    dashboard.onEnterEditMode();
+    render(
+      <TestProvider>
+        <DashboardModePicker dashboard={dashboard} />
+      </TestProvider>
+    );
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Change dashboard mode' }));
+    await user.click(screen.getByRole('menuitemradio', { name: /Save the dashboard before switching to Viewing/ }));
+    await waitFor(() => expect(dashboard.state.overlay).toBeInstanceOf(SaveDashboardDrawer));
+    expect(getDashboardMode(dashboard.state)).toBe('edit');
+  });
+
   it.each(['navigation', 'restore'] as const)('refuses Viewing without a save prompt via %s', (trigger) => {
     const dashboard = setup(false, true);
     dashboard.onEnterEditMode();
@@ -338,7 +378,9 @@ describe('switching from Agent editing to Viewing with an unsaved Assistant draf
       </TestProvider>
     );
     const user = userEvent.setup();
-    await chooseMode(user, /View and explore/);
+    await user.hover(screen.getByRole('button', { name: 'Dashboard mode: Agent editing' }));
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Switch to Viewing');
+    await user.click(screen.getByRole('button', { name: 'Dashboard mode: Agent editing' }));
     expect(await screen.findByRole('dialog', { name: 'Unsaved changes' })).toBeInTheDocument();
     expect(getDashboardMode(dashboard.state)).toBe('agent');
     return { dashboard, user };
@@ -369,14 +411,14 @@ it('asks to save a new dashboard before leaving Agent editing for Viewing', asyn
       <DashboardModePicker dashboard={dashboard} />
     </TestProvider>
   );
-  await chooseMode(userEvent.setup(), /Save the dashboard before switching to Viewing/);
+  await userEvent.click(screen.getByRole('button', { name: 'Dashboard mode: Agent editing' }));
   await waitFor(() => expect(dashboard.state.overlay).toBeInstanceOf(SaveDashboardDrawer));
   expect(getDashboardMode(dashboard.state)).toBe('agent');
   expect(dashboard.state.title).toBe('Agent draft');
 });
 
 describe('switching from Editing to Viewing with unsaved changes', () => {
-  async function chooseViewing() {
+  async function chooseViewing(trigger = 'label') {
     const dashboard = setup();
     dashboard.setDashboardMode('edit', 'picker');
     changeTitle({ source: dashboard, oldValue: 'Original title', newValue: 'Unsaved title' });
@@ -387,7 +429,12 @@ describe('switching from Editing to Viewing with unsaved changes', () => {
       </TestProvider>
     );
     const user = userEvent.setup();
-    await chooseMode(user, /View and explore/);
+    if (trigger === 'caret') {
+      await user.click(screen.getByRole('button', { name: 'Change dashboard mode' }));
+      await user.click(screen.getByRole('menuitemradio', { name: /View and explore/ }));
+    } else {
+      await user.click(screen.getByRole('button', { name: 'Dashboard mode: Editing' }));
+    }
     expect(await screen.findByRole('dialog', { name: 'Unsaved changes' })).toBeInTheDocument();
     expect(screen.getByText('Do you want to save your changes?')).toBeInTheDocument();
     expect(getDashboardMode(dashboard.state)).toBe('edit');
@@ -409,14 +456,17 @@ describe('switching from Editing to Viewing with unsaved changes', () => {
     );
   }
 
-  it('keeps the draft in Editing when the save prompt is cancelled', async () => {
-    const { dashboard, user } = await chooseViewing();
-    await user.click(screen.getByRole('button', { name: 'Cancel' }));
-    expect(screen.getByRole('button', { name: 'Dashboard mode: Editing' })).toBeInTheDocument();
-    expect(dashboard.state.title).toBe('Unsaved title');
-    expect(dashboard.state.overlay).toBeUndefined();
-    expect(mockSaveDashboard).not.toHaveBeenCalled();
-  });
+  it.each(['label', 'caret'])(
+    'keeps the draft in Editing when the save prompt from the %s is cancelled',
+    async (trigger) => {
+      const { dashboard, user } = await chooseViewing(trigger);
+      await user.click(screen.getByRole('button', { name: 'Cancel' }));
+      expect(screen.getByRole('button', { name: 'Dashboard mode: Editing' })).toBeInTheDocument();
+      expect(dashboard.state.title).toBe('Unsaved title');
+      expect(dashboard.state.overlay).toBeUndefined();
+      expect(mockSaveDashboard).not.toHaveBeenCalled();
+    }
+  );
 
   it('discards the draft and switches to Viewing when Discard is chosen', async () => {
     const { dashboard, user } = await chooseViewing();
@@ -484,7 +534,8 @@ describe('switching from Editing to Viewing with unsaved changes', () => {
         <DashboardModePicker dashboard={dashboard} />
       </TestProvider>
     );
-    await chooseMode(userEvent.setup(), /View and explore/);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Dashboard mode: Editing' }));
     expect(screen.getByRole('button', { name: 'Dashboard mode: Viewing' })).toBeInTheDocument();
     expect(dashboard.state.overlay).toBeUndefined();
   });
@@ -529,7 +580,7 @@ it('lets a plugin-managed dashboard enter Editing and save as a copy', async () 
     </TestProvider>
   );
   const user = userEvent.setup();
-  await chooseMode(user, /Manually edit panels/);
+  await user.click(screen.getByRole('button', { name: 'Dashboard mode: Viewing' }));
   expect(getDashboardMode(dashboard.state)).toBe('edit');
 
   cleanup();
@@ -638,7 +689,7 @@ it('labels Assistant edits from Viewing as Agent editing without adding a picker
   expect(scene.state.title).toBe('Agent draft');
   expect(isFullDashboardEditing(scene.state)).toBe(false);
   const user = userEvent.setup();
-  await user.click(screen.getByRole('button', { name: 'Dashboard mode: Agent editing' }));
+  await user.click(screen.getByRole('button', { name: 'Change dashboard mode' }));
   expect(screen.queryByRole('menuitemradio', { name: /Agent editing/ })).not.toBeInTheDocument();
   await user.click(screen.getByRole('menuitemradio', { name: /Manually edit panels/ }));
   expect(screen.getByRole('button', { name: 'Dashboard mode: Editing' })).toBeInTheDocument();
@@ -839,14 +890,15 @@ describe('mode instrumentation', () => {
         <DashboardModePicker dashboard={dashboard} />
       </TestProvider>
     );
-    await chooseMode(user, /Editing/);
+    await user.click(screen.getByRole('button', { name: 'Change dashboard mode' }));
+    await user.click(screen.getByRole('menuitemradio', { name: /Editing/ }));
     first.unmount();
     render(
       <TestProvider>
         <DashboardModePicker dashboard={dashboard} />
       </TestProvider>
     );
-    await user.click(screen.getByRole('button', { name: 'Dashboard mode: Editing' }));
+    await user.click(screen.getByRole('button', { name: 'Change dashboard mode' }));
     expect(events('dashboards_mode_picker_shown')).toEqual([
       expect.objectContaining({ dashboard_uid: 'modes-test', mode: 'view' }),
     ]);

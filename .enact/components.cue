@@ -651,9 +651,9 @@ pipeline: {
 		e2e: {
 			title: "End-to-end tests (Playwright)", kind: "verification", domain: "verification", root: "e2e-playwright"
 			watch_paths: ["e2e-playwright/**", "playwright.config.ts", "playwright.storybook.config.ts", "helpers/playwright.sh", "helpers/e2e-build.sh"]
-			depends_on:  ["backend", "frontend"]
+			depends_on:  ["backend", "frontend", "@grafana-plugins/grafana-azure-monitor-datasource", "@grafana-plugins/grafana-testdata-datasource", "@grafana-plugins/graphite"]
 			resources:   {cpus: 4, memory_mb: 8192}
-			shards:      4
+			shards:      8
 			jobs: {
 				lint: (frontendLint & {_up: "../"}).out
 				build: {
