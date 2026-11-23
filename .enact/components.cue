@@ -406,9 +406,10 @@ pipeline: {
 			title: "Go platform modules", kind: "library", domain: "backend", technology: "go", root: "."
 			watch_paths: [for m in baseModules {"\(m)/**"}]
 			depends_on:  ["go-root"]
-			resources:   {cpus: 4, memory_mb: 8192}
-			shards:      2
-			recorder:    "trace"
+			resources:        {cpus: 4, memory_mb: 8192}
+			shards:           2
+			recorder:         "trace"
+			record_resources: {cpus: 2, memory_mb: 4096}
 			jobs: lint: (goLint & {
 				_more: [
 					(goWorkspaceVerify & {_include: [for m in baseModules {"\(m)/go.{mod,sum}"}]}).out,
@@ -631,10 +632,11 @@ pipeline: {
 		"dashboard-golden": {
 			title: "Dashboard migration golden files", technology: ["go", "typescript"], root: "."
 			watch_paths: list.Concat([["apps/dashboard/Makefile", "apps/dashboard/go.mod", "apps/dashboard/go.sum", "apps/dashboard/pkg/apis/**", "apps/dashboard/pkg/migration/**", "helpers/dashboard-golden.sh"], goldenTests])
-			depends_on:  ["frontend", "base"]
-			resources:   {cpus: 4, memory_mb: 8192}
-			recorder:    "own_linux"
-			test:        {command: "helpers/dashboard-golden.sh {targets}", timeout: "20m"}
+			depends_on:       ["frontend", "base"]
+			resources:        {cpus: 4, memory_mb: 8192}
+			recorder:         "own_linux"
+			record_resources: {cpus: 2, memory_mb: 6144}
+			test:             {command: "helpers/dashboard-golden.sh {targets}", timeout: "20m"}
 			target_scope: {
 				fallback: "none", tests: goldenTests
 				rules: [
@@ -655,7 +657,7 @@ pipeline: {
 			jobs: {
 				lint: (frontendLint & {_up: "../"}).out
 				build: {
-					services: false, resources: {cpus: 4, memory_mb: 12288}
+					services: false, resources: {cpus: 4, memory_mb: 10240}
 					outputs: {
 						paths: ["bin/grafana", "public/build", "public/app/plugins/datasource/*/dist", "e2e-playwright/test-plugins/*/dist", "data/plugins-bundled"]
 						key:   ["*", "patches/**", "apps/**", "cue.mod/**", "kinds/**", "packages/**", "pkg/**", "public/**", "scripts/**", "e2e-playwright/test-plugins/**", "helpers/e2e-build.sh"]
