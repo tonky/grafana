@@ -4,10 +4,12 @@ on:
   push:
     branches:
     - main
+    - master
     - perf/ci-showcase
   pull_request:
     branches:
     - main
+    - master
     - perf/ci-showcase
     types:
     - opened
@@ -45,6 +47,9 @@ on:
         default: "false"
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'push' }}
 env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
   COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
@@ -72,22 +77,30 @@ jobs:
     uses: ./.github/workflows/ci-matrix.yml
     with:
       force_warm_suites: ${{ inputs.force_warm_suites }}
+      history_input_artifact: ${{ needs.detect.outputs.history_input_artifact }}
       matrix: ${{ needs.detect.outputs.builds }}
       seed_caches: ${{ inputs.seed_caches }}
       warm_reach: ${{ inputs.warm_reach }}
     secrets: inherit
   detect:
     name: Detect Affected Components
+    env:
+      ENACT_OBSERVATIONS_ENABLED: "1"
+    permissions:
+      actions: read
+      contents: read
     runs-on:
     - self-hosted
     - Linux
     - tonky-ci
-    - tonky-ci-s
+    - tonky-ci-c2m4g
     timeout-minutes: 10
     outputs:
       builds: ${{ steps.diff.outputs.builds }}
       built: ${{ steps.diff.outputs.built }}
+      history_input_artifact: ${{ steps.history_restore.outputs.artifact }}
       matrix: ${{ steps.diff.outputs.matrix }}
+      stage_work: ${{ steps.diff.outputs.stage_work }}
     steps:
     - name: Probe Runner Caches
       id: runner_caches
@@ -444,6 +457,34 @@ jobs:
     - name: Ensure enve & enact CLI on PATH
       id: setup-runner
       run: enact ci setup-runner
+    - name: Select Immutable CI History
+      id: history_restore
+      run: |-
+        enact ci history restore --pipeline "$ENACT_HISTORY_PIPELINE" --repo "$GITHUB_REPOSITORY" --workflow "$ENACT_HISTORY_WORKFLOW" --head "$ENACT_HISTORY_HEAD" --output "$RUNNER_TEMP/enact-history-input/snapshot.json" --max-runs 8 --max-age-days 14 --max-bytes 4194304
+        export ENACT_HISTORY_DIR="$RUNNER_TEMP/enact-history"
+        printf 'ENACT_HISTORY_DIR=%s\n' "$ENACT_HISTORY_DIR" >> "$GITHUB_ENV"
+        enact ci history import --input "$RUNNER_TEMP/enact-history-input/snapshot.json" --manifest "$RUNNER_TEMP/enact-history-input/snapshot.manifest.json" --output "$ENACT_HISTORY_DIR"
+        printf 'artifact=enact-history-input-v1-%s\n' "$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+      env:
+        ENACT_HISTORY_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        ENACT_HISTORY_PIPELINE: .enact
+        ENACT_HISTORY_WORKFLOW: .github/workflows/ci.yml
+        GH_TOKEN: ${{ github.token }}
+    - name: Cache history Handoff on the Receiving Host
+      if: env.ENACT_HOST_CACHE != ''
+      continue-on-error: true
+      run: enact ci handoff history --publish --artifact "$ENACT_HANDOFF_ARTIFACT" --directory "$RUNNER_TEMP/enact-history-input"
+      env:
+        ENACT_HANDOFF_ARTIFACT: enact-history-input-v1-${{ github.run_attempt }}
+    - name: Hand CI History to the Jobs
+      uses: actions/upload-artifact@v7
+      with:
+        if-no-files-found: error
+        name: enact-history-input-v1-${{ github.run_attempt }}
+        path: |-
+          ${{ runner.temp }}/enact-history-input/snapshot.json
+          ${{ runner.temp }}/enact-history-input/snapshot.manifest.json
+        retention-days: "14"
     - name: Compute Affected Component Matrix
       id: diff
       run: |-
@@ -468,6 +509,7 @@ jobs:
         ENACT_BASE_REF: ${{ inputs.base_ref || github.base_ref || github.event.pull_request.base.ref }}
         ENACT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         ENACT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'master' }}
+        ENACT_DETECT_OTHER_OUTPUTS: ${{ format('{{"history_input_artifact":{0}}}', toJSON(steps.history_restore.outputs.artifact)) }}
         ENACT_EVENT_BEFORE: ${{ github.event.before }}
         ENACT_FORCE_NO_CACHE: ${{ inputs.no_cache == 'true' || vars.ENACT_NO_CACHE == 'true' || contains(github.event.pull_request.title, '[no-cache]') || contains(github.event.pull_request.body, '[no-cache]') || contains(github.event.pull_request.labels.*.name, 'no-cache') }}
         ENACT_FORCE_RERUN: ${{ contains(github.event.pull_request.title, '[rerun]') || contains(github.event.pull_request.body, '[rerun]') || contains(github.event.pull_request.labels.*.name, 'rerun') || contains(github.event.pull_request.labels.*.name, 'showcase') || startsWith(github.head_ref, 'showcase/') || startsWith(github.ref_name, 'showcase/') }}
@@ -529,13 +571,19 @@ jobs:
         retention-days: "1"
   preflight:
     name: "Stage: Preflight [enact-prefer=ibp8;wait=15]"
+    env:
+      ENACT_OBSERVATIONS_ENABLED: "1"
+    permissions:
+      actions: read
+      contents: read
+    needs:
+    - detect
     runs-on:
     - self-hosted
     - Linux
-    - X64
     - tonky-ci
-    - tonky-ci-l
-    timeout-minutes: 60
+    - tonky-ci-c6m12g
+    timeout-minutes: 90
     steps:
     - name: Probe Runner Caches
       id: runner_caches
@@ -1121,9 +1169,43 @@ jobs:
     - name: Ensure enve & enact CLI on PATH
       id: setup-runner
       run: enact ci setup-runner
+    - name: Restore history Handoff
+      id: history-host
+      if: env.ENACT_HOST_CACHE != ''
+      continue-on-error: true
+      run: enact ci handoff history --artifact "$ENACT_HANDOFF_ARTIFACT" --directory "$RUNNER_TEMP/enact-history-input"
+      env:
+        ENACT_HANDOFF_ARTIFACT: ${{ needs.detect.outputs.history_input_artifact }}
+        GH_TOKEN: ${{ github.token }}
+    - name: Download the Selected CI History
+      if: steps.history-host.outputs.ready != 'true'
+      uses: actions/download-artifact@v8
+      with:
+        name: ${{ needs.detect.outputs.history_input_artifact }}
+        path: ${{ runner.temp }}/enact-history-input
+    - name: Import the Selected CI History
+      run: |-
+        export ENACT_HISTORY_DIR="$RUNNER_TEMP/enact-history"
+        printf 'ENACT_HISTORY_DIR=%s\n' "$ENACT_HISTORY_DIR" >> "$GITHUB_ENV"
+        enact ci history import --input "$RUNNER_TEMP/enact-history-input/snapshot.json" --manifest "$RUNNER_TEMP/enact-history-input/snapshot.manifest.json" --output "$ENACT_HISTORY_DIR"
+    - name: Cache history Handoff on the Receiving Host
+      if: env.ENACT_HOST_CACHE != '' && steps.history-host.outputs.ready != 'true'
+      continue-on-error: true
+      run: enact ci handoff history --publish --artifact "$ENACT_HANDOFF_ARTIFACT" --directory "$RUNNER_TEMP/enact-history-input"
+      env:
+        ENACT_HANDOFF_ARTIFACT: ${{ needs.detect.outputs.history_input_artifact }}
     - name: Plan Stage [Preflight]
       id: stage_plan
       run: |-
+        if [ -n "${ENACT_DETECT_STAGE_WORK:-}" ] && [ "$ENACT_DETECT_STAGE_WORK" != "null" ]; then
+          {
+            echo "stage_has_work=${ENACT_DETECT_STAGE_HAS_WORK:-false}"
+            echo "stage_needs_node=${ENACT_DETECT_STAGE_NEEDS_NODE:-false}"
+            echo "stage_needs_python=${ENACT_DETECT_STAGE_NEEDS_PYTHON:-false}"
+          } >> "$GITHUB_OUTPUT"
+          echo "Reused detect stage plan for [preflight]"
+          exit 0
+        fi
         RESOLVED=$(enact ci resolve-base) || exit
         eval "$RESOLVED"
         PLAN_ARGS=()
@@ -1139,6 +1221,10 @@ jobs:
         ENACT_BASE_REF: ${{ inputs.base_ref || github.base_ref || github.event.pull_request.base.ref }}
         ENACT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         ENACT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'master' }}
+        ENACT_DETECT_STAGE_HAS_WORK: ${{ needs.detect.outputs.stage_work != '' && fromJson(needs.detect.outputs.stage_work)['preflight'].has_work || '' }}
+        ENACT_DETECT_STAGE_NEEDS_NODE: ${{ needs.detect.outputs.stage_work != '' && fromJson(needs.detect.outputs.stage_work)['preflight'].needs_node || '' }}
+        ENACT_DETECT_STAGE_NEEDS_PYTHON: ${{ needs.detect.outputs.stage_work != '' && fromJson(needs.detect.outputs.stage_work)['preflight'].needs_python || '' }}
+        ENACT_DETECT_STAGE_WORK: ${{ needs.detect.outputs.stage_work != '' && toJson(fromJson(needs.detect.outputs.stage_work)['preflight']) || '' }}
         ENACT_EVENT_BEFORE: ${{ github.event.before }}
         ENACT_FORCE_NO_CACHE: ${{ inputs.no_cache == 'true' || vars.ENACT_NO_CACHE == 'true' || contains(github.event.pull_request.title, '[no-cache]') || contains(github.event.pull_request.body, '[no-cache]') || contains(github.event.pull_request.labels.*.name, 'no-cache') }}
         ENACT_FORCE_RERUN: ${{ contains(github.event.pull_request.title, '[rerun]') || contains(github.event.pull_request.body, '[rerun]') || contains(github.event.pull_request.labels.*.name, 'rerun') || contains(github.event.pull_request.labels.*.name, 'showcase') || startsWith(github.head_ref, 'showcase/') || startsWith(github.ref_name, 'showcase/') }}
@@ -1148,6 +1234,7 @@ jobs:
         ENACT_INTEGRATION_BRANCH: ${{ vars.ENACT_INTEGRATION_BRANCH }}
         ENACT_R2_BUCKET: ${{ secrets.R2_BUCKET || env.R2_BUCKET }}
         ENACT_REACH_PULLED: "1"
+        ENACT_RUNNER_ALLOCATION: "{\"cpus\":6.0,\"memory_mb\":12288,\"runtime_reserve_mb\":2048}"
         ENACT_SAME_REPO_PR: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
         GITHUB_HEAD_REF: ${{ github.head_ref }}
         GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -1229,6 +1316,7 @@ jobs:
         ENACT_INTEGRATION_BRANCH: ${{ vars.ENACT_INTEGRATION_BRANCH }}
         ENACT_R2_BUCKET: ${{ secrets.R2_BUCKET || env.R2_BUCKET }}
         ENACT_REACH_PULLED: "1"
+        ENACT_RUNNER_ALLOCATION: "{\"cpus\":6.0,\"memory_mb\":12288,\"runtime_reserve_mb\":2048}"
         ENACT_SAME_REPO_PR: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
         GITHUB_HEAD_REF: ${{ github.head_ref }}
         GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -1282,6 +1370,8 @@ jobs:
         retention-days: "1"
   summary:
     name: Consolidate Reach Map & Telemetry
+    env:
+      ENACT_OBSERVATIONS_ENABLED: "1"
     needs:
     - detect
     - preflight
@@ -1293,7 +1383,7 @@ jobs:
     - self-hosted
     - Linux
     - tonky-ci
-    - tonky-ci-s
+    - tonky-ci-c2m4g
     timeout-minutes: 15
     steps:
     - name: Probe Runner Caches
@@ -1564,6 +1654,19 @@ jobs:
         name: enact-workflow-summary
         path: .enact/state/summary.html
         retention-days: "1"
+    - name: Export CI History for All Outcomes
+      if: ${{ always() }}
+      run: enact ci history export --pipeline "$ENACT_HISTORY_PIPELINE" --input .enact/state/telemetry --output "$RUNNER_TEMP/enact-history-export/snapshot.json"
+      env:
+        ENACT_HISTORY_PIPELINE: .enact
+    - name: Upload Attempt CI History
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v7
+      with:
+        if-no-files-found: error
+        name: enact-history-v1-${{ github.run_attempt }}
+        path: ${{ runner.temp }}/enact-history-export/snapshot.json
+        retention-days: "14"
     - name: Restore Reach Store
       id: reach-store
       if: ${{ !cancelled() && (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch || github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != github.event.repository.default_branch || github.event_name == 'workflow_dispatch' && inputs.warm_reach == 'true' && github.ref_name == github.event.repository.default_branch) }}
@@ -1623,6 +1726,7 @@ jobs:
     uses: ./.github/workflows/ci-matrix.yml
     with:
       force_warm_suites: ${{ inputs.force_warm_suites }}
+      history_input_artifact: ${{ needs.detect.outputs.history_input_artifact }}
       matrix: ${{ needs.detect.outputs.matrix }}
       seed_caches: ${{ inputs.seed_caches }}
       warm_reach: ${{ inputs.warm_reach }}
@@ -1639,6 +1743,7 @@ jobs:
     uses: ./.github/workflows/ci-matrix.yml
     with:
       force_warm_suites: ${{ inputs.force_warm_suites }}
+      history_input_artifact: ${{ needs.detect.outputs.history_input_artifact }}
       matrix: ${{ needs.detect.outputs.built }}
       seed_caches: ${{ inputs.seed_caches }}
       warm_reach: ${{ inputs.warm_reach }}
@@ -1647,7 +1752,7 @@ jobs:
     name: Warm Hosted L1 Caches
     if: ${{ github.event_name != 'pull_request' && (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch || github.event_name == 'workflow_dispatch' && inputs.seed_caches == 'true') }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
     - name: Probe Runner Caches
       id: runner_caches

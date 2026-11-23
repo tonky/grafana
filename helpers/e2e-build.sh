@@ -8,7 +8,32 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 
-make build-go
-pnpm run build
-pnpm run e2e:plugin:build
-make build-catalog-plugins-data
+script_start="$(date +%s)"
+
+run_phase() {
+    local name="$1"
+    shift
+    local start end dur elapsed rc=0
+    start="$(date +%s)"
+    echo "[e2e-build] phase=${name} event=start ts=${start} elapsed_s=$((start - script_start))" >&2
+    "$@" || rc=$?
+    end="$(date +%s)"
+    dur=$((end - start))
+    elapsed=$((end - script_start))
+    echo "[e2e-build] phase=${name} event=done status=${rc} ts=${end} duration_s=${dur} elapsed_s=${elapsed}" >&2
+    return "${rc}"
+}
+
+modules_yaml="missing"
+if [[ -f node_modules/.modules.yaml ]]; then
+    modules_yaml="present"
+fi
+echo "[e2e-build] phase=install_check event=done ts=${script_start} prepared=${ENACT_PREPARED:-none} modules_yaml=${modules_yaml}" >&2
+
+run_phase build-go make build-go
+run_phase build-frontend pnpm run build
+run_phase e2e-plugin-build pnpm run e2e:plugin:build
+run_phase build-catalog-plugins-data make build-catalog-plugins-data
+
+script_end="$(date +%s)"
+echo "[e2e-build] phase=total event=done ts=${script_end} duration_s=$((script_end - script_start))" >&2

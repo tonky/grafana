@@ -27,6 +27,8 @@ pipeline: schema.#Pipeline & {
 	toolchain: node: package_manager: "pnpm"
 	ci: {
 		soft_placement: {fallback_seconds: 15}
+		scheduler: {makespan_tolerance: 1.05}
+		history: {workflow: ".github/workflows/ci.yml"}
 		diagnostic_paths: [
 			".enact/state/diagnostics/grafana-e2e/*/results/**",
 			".enact/state/diagnostics/grafana-e2e/*/grafana-server.log",
@@ -40,15 +42,16 @@ pipeline: schema.#Pipeline & {
 			branch:     "perf/ci-showcase"
 		}
 		allow_broad: branch_prefixes: ["mirror-broad/"]
-		// Runner sizes within ibp8/mac1 shared host budget (agentic/KNOWLEDGE.md tonky-ci).
+		// Runner pools calibrated from measured Grafana/PostHog/n8n runs (agentic/KNOWLEDGE.md tonky-ci).
 		workers: {
 			github: {
 				// Standard public capacity; one declared image shares the account quota.
-				preset: "github-public", labels: ["ubuntu-24.04"]
+				preset: "github-public", labels: ["ubuntu-24.04"], quota_group: "github-public"
 				tier: "on_demand", available: 20, cost_per_min: 0
-				// Conservative preparation estimate pending actual hosted measurements.
-				setup_overhead_sec: 300
-				timeout_minutes: 60
+				// Calibrated from measured 58-87s cold preparation on ubuntu-24.04.
+				setup_overhead_sec: 80
+				throughput:         0.75
+				timeout_minutes:    90
 			}
 			standard: {
 				labels:          ["self-hosted", "Linux", "X64", "tonky-ci"]
@@ -56,14 +59,19 @@ pipeline: schema.#Pipeline & {
 				tier:            "dedicated"
 				available:       1
 				cost_per_min:    0.010
-				timeout_minutes: 60
+				throughput:      1.0
+				timeout_minutes: 90
 				pool: {
 					cpus:      14
 					memory_mb: 28672
-					sizes: {
-						"tonky-ci-s": {cpus: 2, memory_mb: 4096}
-						"tonky-ci-m": {cpus: 4, memory_mb: 8192}
-						"tonky-ci-l": {cpus: 6, memory_mb: 13312}
+					quantization: {
+						label_prefix:       "tonky-ci"
+						cpu_step:           1
+						memory_step_mb:     1024
+						runtime_reserve_mb: 2048
+						min: {cpus: 1, memory_mb: 4096}
+						max: {cpus: 6, memory_mb: 13312}
+						control: {cpus: 2, memory_mb: 4096}
 					}
 				}
 			}
@@ -73,27 +81,36 @@ pipeline: schema.#Pipeline & {
 				tier:            "dedicated"
 				available:       1
 				cost_per_min:    0.010
-				timeout_minutes: 60
+				throughput:      1.35
+				timeout_minutes: 90
 				pool: {
 					cpus:      16
 					memory_mb: 36864
-					sizes: {
-						"tonky-ci-s": {cpus: 2, memory_mb: 4096}
-						"tonky-ci-m": {cpus: 4, memory_mb: 8192}
-						"tonky-ci-l": {cpus: 6, memory_mb: 13312}
+					quantization: {
+						label_prefix:       "tonky-ci"
+						cpu_step:           1
+						memory_step_mb:     1024
+						runtime_reserve_mb: 2048
+						min: {cpus: 1, memory_mb: 4096}
+						max: {cpus: 6, memory_mb: 13312}
+						control: {cpus: 2, memory_mb: 4096}
 					}
 				}
 			}
 			l7: {
-				// A second X64 host (8c/14G): s and m only; a gate lane holding l7 drains it to zero.
-				// A size costs the rate times its share of the largest size: 0.006 prices its m as
-				// the 13 GB pools price theirs.
-				labels: ["self-hosted", "Linux", "X64", "tonky-ci"], host_id: "l7", tier: "dedicated", available: 1, cost_per_min: 0.006, timeout_minutes: 60
+				// A second X64 host (16t, ~13 GiB free), up to 8c/8G allocations when idle.
+				// A gate lane holding l7 drains its dispatcher to zero.
+				labels: ["self-hosted", "Linux", "X64", "tonky-ci"], host_id: "l7", tier: "dedicated", available: 1, cost_per_min: 0.006, throughput: 0.95, timeout_minutes: 90
 				pool: {
 					cpus: 16, memory_mb: 13312
-					sizes: {
-						"tonky-ci-s": {cpus: 2, memory_mb: 4096}
-						"tonky-ci-m": {cpus: 4, memory_mb: 8192}
+					quantization: {
+						label_prefix:       "tonky-ci"
+						cpu_step:           1
+						memory_step_mb:     1024
+						runtime_reserve_mb: 2048
+						min: {cpus: 1, memory_mb: 4096}
+						max: {cpus: 8, memory_mb: 8192}
+						control: {cpus: 2, memory_mb: 4096}
 					}
 				}
 			}
@@ -101,11 +118,12 @@ pipeline: schema.#Pipeline & {
 	}
 	workflows: {
 		ci: {
-			layout:   "staged"
-			services: "on_demand"
+			layout:      "staged"
+			services:    "on_demand"
+			concurrency: {scope: "branch", cancel_in_progress: true}
 			triggers: {
-				push: branches:         ["main", "perf/ci-showcase"]
-				pull_request: branches: ["main", "perf/ci-showcase"]
+				push: branches:         ["main", "master", "perf/ci-showcase"]
+				pull_request: branches: ["main", "master", "perf/ci-showcase"]
 			}
 			stages: _stages
 		}

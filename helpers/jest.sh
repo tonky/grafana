@@ -96,6 +96,11 @@ if [[ ${#targets[@]} -gt 0 ]]; then
     if [[ -n "${ENACT_FOOTPRINT_DIR:-}" && "$(uname -s)" == Linux ]]; then
         wanted_targets=()
         plain_targets=()
+        # Mirror enact-runner's TRACED_PER_SHARD=4 cap on ordinary PR runs so broad aging
+        # (e.g. conf/defaults.ini) never forces 280+ cold per-file Jest boots per shard.
+        # Full warm/bootstrap runs set ENACT_RECORD=every (or ENACT_JEST_MAX_TRACE=0).
+        max_trace="${ENACT_JEST_MAX_TRACE:-4}"
+        [[ "${ENACT_RECORD:-}" == "every" || -z "${ENACT_FOOTPRINT_TARGETS:-}" ]] && max_trace=0
         for target in "${targets[@]}"; do
             rel_target="${target#./}"
             [[ "${project}" == "." ]] || rel_target="${project}/${rel_target}"
@@ -110,7 +115,7 @@ if [[ ${#targets[@]} -gt 0 ]]; then
                     fi
                 done <"${ENACT_FOOTPRINT_TARGETS}"
             fi
-            if [[ "${is_wanted}" -eq 1 ]]; then
+            if [[ "${is_wanted}" -eq 1 && ( "${max_trace}" -eq 0 || "${#wanted_targets[@]}" -lt "${max_trace}" ) ]]; then
                 wanted_targets+=("${target}")
             else
                 plain_targets+=("${target}")
