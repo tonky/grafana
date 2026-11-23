@@ -90,24 +90,52 @@ args=(--ci "--filter=${GRAFANA_ROOT}/helpers/jest-filter.cjs")
 workers="--maxWorkers=${ENACT_SHARD_WORKERS:-50%}"
 if [[ ${#targets[@]} -gt 0 ]]; then
     echo "🧪 jest (${project}): tests related to ${#targets[@]} file(s)" >&2
-    # Recording: each target traced alone; jest-attribution.cjs tells enact the tests it
-    # skipped (the trace can't), so their footprints land marked as skipped here.
-    if [[ -n "${ENACT_FOOTPRINT_DIR:-}" && -z "${ENACT_FOOTPRINT_TARGETS:-}" && "$(uname -s)" == Linux ]]; then
-        export TMPDIR="${ENACT_FOOTPRINT_DIR}/jest-cache"
-        mkdir -p "${TMPDIR}"
-        pnpm exec jest "${args[@]}" "${workers}" --listTests >/dev/null || true
-        status=0
-        n=0
+    # Recording: each wanted target traced alone; jest-attribution.cjs tells enact the tests
+    # it skipped (the trace can't), so their footprints land marked as skipped here. Non-wanted
+    # (already fresh or related source) targets run through ordinary --findRelatedTests.
+    if [[ -n "${ENACT_FOOTPRINT_DIR:-}" && "$(uname -s)" == Linux ]]; then
+        wanted_targets=()
+        plain_targets=()
         for target in "${targets[@]}"; do
-            n=$((n + 1))
             rel_target="${target#./}"
             [[ "${project}" == "." ]] || rel_target="${project}/${rel_target}"
-            "${ENACT_EXE:-enact}" trace run --outcomes --shared-tmpdir --no-fingerprint --node-functions \
-                --reach-file "${ENACT_FOOTPRINT_DIR}/jest-traced-${n}.json" \
-                -t "${rel_target}" -- \
-                pnpm exec jest "${args[@]}" --runInBand --reporters=default "--reporters=${GRAFANA_ROOT}/helpers/jest-attribution.cjs" \
-                --passWithNoTests --runTestsByPath "${target}" || status=1
+            is_wanted=0
+            if [[ -z "${ENACT_FOOTPRINT_TARGETS:-}" ]]; then
+                is_wanted=1
+            elif [[ -f "${ENACT_FOOTPRINT_TARGETS}" ]]; then
+                while IFS= read -r line; do
+                    if [[ "${line}" == "${rel_target}" ]]; then
+                        is_wanted=1
+                        break
+                    fi
+                done <"${ENACT_FOOTPRINT_TARGETS}"
+            fi
+            if [[ "${is_wanted}" -eq 1 ]]; then
+                wanted_targets+=("${target}")
+            else
+                plain_targets+=("${target}")
+            fi
         done
+        status=0
+        if [[ ${#wanted_targets[@]} -gt 0 ]]; then
+            export TMPDIR="${ENACT_FOOTPRINT_DIR}/jest-cache"
+            mkdir -p "${TMPDIR}"
+            pnpm exec jest "${args[@]}" "${workers}" --listTests >/dev/null || true
+            n=0
+            for target in "${wanted_targets[@]}"; do
+                n=$((n + 1))
+                rel_target="${target#./}"
+                [[ "${project}" == "." ]] || rel_target="${project}/${rel_target}"
+                "${ENACT_EXE:-enact}" trace run --outcomes --shared-tmpdir --no-fingerprint --node-functions \
+                    --reach-file "${ENACT_FOOTPRINT_DIR}/jest-traced-${n}.json" \
+                    -t "${rel_target}" -- \
+                    pnpm exec jest "${args[@]}" --runInBand --reporters=default "--reporters=${GRAFANA_ROOT}/helpers/jest-attribution.cjs" \
+                    --passWithNoTests --runTestsByPath "${target}" || status=1
+            done
+        fi
+        if [[ ${#plain_targets[@]} -gt 0 ]]; then
+            pnpm exec jest "${args[@]}" "${workers}" --findRelatedTests "${plain_targets[@]}" || status=1
+        fi
         exit "${status}"
     fi
     exec pnpm exec jest "${args[@]}" "${workers}" --findRelatedTests "${targets[@]}"
