@@ -110,7 +110,6 @@ declare module "@openfeature/core" {
     | "alertingListViewV2PreviewToggle"
     | "recentlyViewedDashboards"
     | "alertEnrichment"
-    | "alertingImportAlertmanagerAPI"
     | "preferLibraryPanelTitle"
     | "foldersAppPlatformAPI"
     | "otelLogsFormatting"

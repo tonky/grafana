@@ -504,6 +504,10 @@ pipeline: {
 				}).out
 				resources: jestResources
 				if p.tests {
+					// Root jest.config.js loads public/test/setupTests.ts -> @grafana/test-utils
+					// (which cannot be in depends_on for lower packages like @grafana/data without
+					// closing a cycle through @grafana/runtime).
+					workspace_scope: include: ["packages/grafana-test-utils"]
 					recorder:     "own_linux"
 					recorded_by:  ["enact-node"]
 					test:         (jestTest & {_up: "../../"}).out
@@ -557,6 +561,7 @@ pipeline: {
 				}).out
 				shards:       p.shards
 				resources:    jestResources
+				workspace_scope: include: ["packages/grafana-test-utils"]
 				recorder:     "own_linux"
 				recorded_by:  ["enact-node"]
 				test:         {command: "../../../../../helpers/jest.sh . {shard_index} {shard_total} . -- {relative_targets}", timeout: "20m"}
