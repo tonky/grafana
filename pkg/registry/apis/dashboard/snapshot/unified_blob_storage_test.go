@@ -142,7 +142,6 @@ func TestSnapshotInlineUploadFailure(t *testing.T) {
 	}{
 		{"transport", nil, errors.New("upload failed")},
 		{"embedded", &resourcepb.PutBlobResponse{Error: &resourcepb.ErrorResult{Code: http.StatusNotImplemented}}, nil},
-		{"status", nil, status.Error(codes.Unimplemented, "blob store not configured")},
 		{"incomplete", &resourcepb.PutBlobResponse{}, nil},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

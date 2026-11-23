@@ -96,7 +96,7 @@ func hybridSearchError(err error) error {
 	case codes.Unavailable:
 		return apierrors.NewServiceUnavailable("hybrid search is temporarily unavailable")
 	default:
-		return resource.StatusErrorFromGRPC(err)
+		return resource.StatusErrorFromResponse(nil, err)
 	}
 }
 
