@@ -503,9 +503,9 @@ jobs:
         echo "$MATRIX"
         echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
       env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID || env.R2_ACCESS_KEY_ID }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.R2_READ_ACCESS_KEY_ID || env.R2_READ_ACCESS_KEY_ID }}
         AWS_REGION: auto
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY || env.R2_SECRET_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_READ_SECRET_ACCESS_KEY || env.R2_READ_SECRET_ACCESS_KEY }}
         ENACT_BASE_REF: ${{ inputs.base_ref || github.base_ref || github.event.pull_request.base.ref }}
         ENACT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         ENACT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'master' }}
@@ -1215,9 +1215,9 @@ jobs:
         set -- "${PLAN_ARGS[@]}"
         enact plan --pipeline .enact --workflow ci "$@" --stage preflight --github-output "$GITHUB_OUTPUT"
       env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID || env.R2_ACCESS_KEY_ID }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.R2_READ_ACCESS_KEY_ID || env.R2_READ_ACCESS_KEY_ID }}
         AWS_REGION: auto
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY || env.R2_SECRET_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_READ_SECRET_ACCESS_KEY || env.R2_READ_SECRET_ACCESS_KEY }}
         ENACT_BASE_REF: ${{ inputs.base_ref || github.base_ref || github.event.pull_request.base.ref }}
         ENACT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         ENACT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'master' }}
@@ -1265,9 +1265,9 @@ jobs:
       if: ${{ steps.stage_plan.outputs.stage_has_work == 'true' }}
       run: enact ci deps pull --remote signed
       env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID || env.R2_ACCESS_KEY_ID }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.R2_READ_ACCESS_KEY_ID || env.R2_READ_ACCESS_KEY_ID }}
         AWS_REGION: auto
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY || env.R2_SECRET_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_READ_SECRET_ACCESS_KEY || env.R2_READ_SECRET_ACCESS_KEY }}
         ENACT_ENVIRONMENT_DIRS: "[\".\",\"e2e-playwright\",\"packages/grafana-alerting\",\"packages/grafana-api-clients\",\"packages/grafana-data\",\"packages/grafana-e2e-selectors\",\"packages/grafana-eslint-rules\",\"packages/grafana-flamegraph\",\"packages/grafana-i18n\",\"packages/grafana-o11y-ds-frontend\",\"packages/grafana-openapi\",\"packages/grafana-plugin-compat\",\"packages/grafana-plugin-configs\",\"packages/grafana-runtime\",\"packages/grafana-schema\",\"packages/grafana-sql\",\"packages/grafana-test-utils\",\"packages/grafana-ui\",\"public/app/plugins/datasource/azuremonitor\",\"public/app/plugins/datasource/grafana-testdata-datasource\",\"public/app/plugins/datasource/graphite\"]"
         ENACT_ENVIRONMENT_FILES: "[]"
         ENACT_JOB_SERVICES: ""
@@ -1301,11 +1301,12 @@ jobs:
         eval "$RESOLVED"
         enact run --pipeline .enact --workflow ci "$@" --stage preflight
       env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID || env.R2_ACCESS_KEY_ID }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.R2_READ_ACCESS_KEY_ID || env.R2_READ_ACCESS_KEY_ID }}
         AWS_REGION: auto
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY || env.R2_SECRET_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_READ_SECRET_ACCESS_KEY || env.R2_READ_SECRET_ACCESS_KEY }}
         ENACT_BASE_REF: ${{ inputs.base_ref || github.base_ref || github.event.pull_request.base.ref }}
         ENACT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        ENACT_CACHE_WRITE: read_only
         ENACT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'master' }}
         ENACT_EVENT_BEFORE: ${{ github.event.before }}
         ENACT_FORCE_NO_CACHE: ${{ inputs.no_cache == 'true' || vars.ENACT_NO_CACHE == 'true' || contains(github.event.pull_request.title, '[no-cache]') || contains(github.event.pull_request.body, '[no-cache]') || contains(github.event.pull_request.labels.*.name, 'no-cache') }}
@@ -1640,9 +1641,9 @@ jobs:
       continue-on-error: true
       run: enact runs report --dir .enact/state/telemetry
       env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID || env.R2_ACCESS_KEY_ID }}
+        AWS_ACCESS_KEY_ID: ${{ (env.ENACT_REMOTE_SAVE_EVENT == 'true') && (secrets.R2_ACCESS_KEY_ID || env.R2_ACCESS_KEY_ID) || secrets.R2_READ_ACCESS_KEY_ID || env.R2_READ_ACCESS_KEY_ID }}
         AWS_REGION: auto
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY || env.R2_SECRET_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ (env.ENACT_REMOTE_SAVE_EVENT == 'true') && (secrets.R2_SECRET_ACCESS_KEY || env.R2_SECRET_ACCESS_KEY) || secrets.R2_READ_SECRET_ACCESS_KEY || env.R2_READ_SECRET_ACCESS_KEY }}
         ENACT_R2_BUCKET: ${{ secrets.R2_BUCKET || env.R2_BUCKET }}
         ENACT_UPLOAD_REPORT: ${{ env.ENACT_REMOTE_SAVE_EVENT == 'true' }}
     - name: Upload Master Workflow Dashboard
@@ -1669,7 +1670,7 @@ jobs:
         retention-days: "14"
     - name: Restore Reach Store
       id: reach-store
-      if: ${{ !cancelled() && (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch || github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != github.event.repository.default_branch || github.event_name == 'workflow_dispatch' && inputs.warm_reach == 'true' && github.ref_name == github.event.repository.default_branch) }}
+      if: ${{ !cancelled() && (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch || github.event_name == 'workflow_dispatch' && inputs.warm_reach == 'true' && github.ref_name == github.event.repository.default_branch) }}
       continue-on-error: true
       uses: actions/cache/restore@v6
       with:
@@ -1680,7 +1681,7 @@ jobs:
           enact-reach-${{ github.head_ref || github.ref_name }}-
           enact-reach-${{ github.base_ref || github.event.repository.default_branch }}-
     - name: Download Recorded Footprints
-      if: ${{ !cancelled() && (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch || github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != github.event.repository.default_branch || github.event_name == 'workflow_dispatch' && inputs.warm_reach == 'true' && github.ref_name == github.event.repository.default_branch) }}
+      if: ${{ !cancelled() && (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch || github.event_name == 'workflow_dispatch' && inputs.warm_reach == 'true' && github.ref_name == github.event.repository.default_branch) }}
       continue-on-error: true
       uses: actions/download-artifact@v8
       with:
@@ -1688,7 +1689,7 @@ jobs:
         pattern: enact-footprints-*
     - name: Consolidate the Reach Map
       id: consolidate_reach
-      if: ${{ !cancelled() && (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch || github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != github.event.repository.default_branch || github.event_name == 'workflow_dispatch' && inputs.warm_reach == 'true' && github.ref_name == github.event.repository.default_branch) }}
+      if: ${{ !cancelled() && (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch || github.event_name == 'workflow_dispatch' && inputs.warm_reach == 'true' && github.ref_name == github.event.repository.default_branch) }}
       run: |-
         cd "${GITHUB_WORKSPACE}"
         if [ -n "$(find "$RUNNER_TEMP/enact-footprints" -name '*.bin' -print -quit 2>/dev/null)" ] || [ "$GITHUB_EVENT_NAME" = push ]; then
@@ -2406,9 +2407,9 @@ jobs:
       if: ${{ steps.node_l1_cache.outputs.cache-hit != 'true' || steps.go_l1_cache.outputs.cache-hit != 'true' && hashFiles('**/go.mod', '**/go.sum') != '' }}
       run: enact ci deps pull --remote signed
       env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID || env.R2_ACCESS_KEY_ID }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.R2_READ_ACCESS_KEY_ID || env.R2_READ_ACCESS_KEY_ID }}
         AWS_REGION: auto
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY || env.R2_SECRET_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_READ_SECRET_ACCESS_KEY || env.R2_READ_SECRET_ACCESS_KEY }}
         ENACT_ENVIRONMENT_DIRS: "[\".\",\"e2e-playwright\",\"packages/grafana-alerting\",\"packages/grafana-api-clients\",\"packages/grafana-data\",\"packages/grafana-e2e-selectors\",\"packages/grafana-eslint-rules\",\"packages/grafana-flamegraph\",\"packages/grafana-i18n\",\"packages/grafana-o11y-ds-frontend\",\"packages/grafana-openapi\",\"packages/grafana-plugin-compat\",\"packages/grafana-plugin-configs\",\"packages/grafana-runtime\",\"packages/grafana-schema\",\"packages/grafana-sql\",\"packages/grafana-test-utils\",\"packages/grafana-ui\",\"public/app/plugins/datasource/azuremonitor\",\"public/app/plugins/datasource/grafana-testdata-datasource\",\"public/app/plugins/datasource/graphite\"]"
         ENACT_ENVIRONMENT_FILES: "[]"
         ENACT_JOB_SERVICES: mysql,postgres

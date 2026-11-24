@@ -684,7 +684,7 @@ pipeline: {
 					}
 					tasks: [{command: "../helpers/e2e-build.sh", timeout: "40m"}]
 				}
-				test: {needs: ["build"], tasks: [{command: "../helpers/playwright.sh {shard_index} {shard_total} {relative_targets}", timeout: "45m"}]}
+				test: {technology: "typescript", needs: ["build"], tasks: [{command: "../helpers/playwright.sh {shard_index} {shard_total} {relative_targets}", timeout: "45m"}]}
 			}
 			workspace_scope: {
 				include:              ["e2e-playwright", "playwright.config.ts", "playwright.storybook.config.ts", "conf", "devenv", "emails", "public", "packages", "scripts", "pkg", "apps", "kinds", "embed.go", "Makefile", "go.mod", "go.sum", "go.work", "go.work.sum"]

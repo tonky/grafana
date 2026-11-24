@@ -35,7 +35,13 @@ pipeline: schema.#Pipeline & {
 		]
 		rerun: {labels: ["rerun", "showcase"], branch_prefixes: ["showcase/"]}
 		remote_cache: {
-			secrets: {bucket: "R2_BUCKET", access_key_id: "R2_ACCESS_KEY_ID", secret_access_key: "R2_SECRET_ACCESS_KEY"}
+			secrets: {
+				bucket:                 "R2_BUCKET"
+				access_key_id:          "R2_ACCESS_KEY_ID"
+				secret_access_key:      "R2_SECRET_ACCESS_KEY"
+				read_access_key_id:     "R2_READ_ACCESS_KEY_ID"
+				read_secret_access_key: "R2_READ_SECRET_ACCESS_KEY"
+			}
 			public_url: "https://cache.tonky.dev"
 			public_key: "enve-r2-1:ckHPTeWVef6mba+1AwWHjKYCsUWKPfP9IXPm5YXNoHg="
 			repo:       "tonky/grafana"
