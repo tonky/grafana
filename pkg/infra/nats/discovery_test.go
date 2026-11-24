@@ -8,7 +8,6 @@ import (
 	"time"
 
 	natsserver "github.com/nats-io/nats-server/v2/server"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/grafana/pkg/infra/log"
@@ -98,10 +97,7 @@ func newTestDiscovery(t *testing.T, reg peerRegistry, self peer) *discovery {
 		next.Routes = routes
 		return srv.ReloadOptions(&next)
 	}
-	return newDiscovery(log.NewNopLogger(), srv, reg, self, discoveryOptions{
-		reload:  reload,
-		metrics: newServerMetrics(prometheus.NewRegistry()),
-	})
+	return newDiscovery(log.NewNopLogger(), srv, reg, self, discoveryOptions{reload: reload})
 }
 
 func TestDiscoveryReconcile(t *testing.T) {
@@ -156,4 +152,10 @@ func TestDiscoveryReconcile(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, peers)
 	})
+}
+
+func TestSameRouteSet(t *testing.T) {
+	require.True(t, sameRouteSet(map[string]struct{}{"a": {}}, map[string]struct{}{"a": {}}))
+	require.False(t, sameRouteSet(map[string]struct{}{"a": {}}, map[string]struct{}{"b": {}}))
+	require.False(t, sameRouteSet(map[string]struct{}{"a": {}}, map[string]struct{}{"a": {}, "b": {}}))
 }

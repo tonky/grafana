@@ -468,6 +468,8 @@ jobs:
             /tmp/go-build
             /tmp/go/pkg/mod
           restore-keys: |-
+            ${{ runner.os }}-${{ runner.arch }}-go-seed-${{ hashFiles('go.mod', 'go.sum', 'go.work', 'go.work.sum', 'enve.lock') }}-
+            ${{ runner.os }}-${{ runner.arch }}-go-seed-
             ${{ runner.os }}-go-${{ hashFiles('**/go.mod', '**/go.sum') }}-
             ${{ runner.os }}-go-
       - name: Restore Node dependency cache
@@ -797,14 +799,24 @@ jobs:
         ENACT_OUTPUTS_MODE: restore
         ENACT_OUTPUTS_PATHS: ${{ matrix.output_paths }}
     - name: Cache Built Outputs
+      id: cache_outputs
       if: ${{ success() && (!steps.skip.outputs.hit || steps.outputs-publish.outputs.cache-hit == 'true') && matrix.output_key != '' }}
       continue-on-error: true
       uses: actions/cache/save@v6
       with:
         key: enact-outputs-${{ matrix.output_slug }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.output_key }}
         path: ${{ matrix.output_paths }}
+    - name: Verify Built Outputs Cached
+      id: outputs_cached
+      if: ${{ success() && (!steps.skip.outputs.hit || steps.outputs-publish.outputs.cache-hit == 'true') && steps.cache_outputs.outcome == 'success' && matrix.output_key != '' }}
+      continue-on-error: true
+      uses: actions/cache/restore@v6
+      with:
+        key: enact-outputs-${{ matrix.output_slug }}-${{ runner.os }}-${{ runner.arch }}-${{ matrix.output_key }}
+        lookup-only: "true"
+        path: ${{ matrix.output_paths }}
     - name: Upload Built Outputs Artifact
-      if: ${{ success() && (!steps.skip.outputs.hit || steps.outputs-publish.outputs.cache-hit == 'true') && matrix.output_key != '' }}
+      if: ${{ success() && (!steps.skip.outputs.hit || steps.outputs-publish.outputs.cache-hit == 'true') && (steps.cache_outputs.outcome != 'success' || steps.outputs_cached.outputs.cache-hit != 'true') && matrix.output_key != '' }}
       continue-on-error: true
       uses: actions/upload-artifact@v7
       with:

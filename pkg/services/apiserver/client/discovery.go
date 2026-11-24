@@ -27,7 +27,6 @@ type DiscoveryClient interface {
 	GetKindForResource(gvr schema.GroupVersionResource) (schema.GroupVersionKind, error)
 	GetPreferredVersion(ctx context.Context, gr schema.GroupResource) (schema.GroupVersionResource, schema.GroupVersionKind, error)
 	GetPreferredVersionForKind(ctx context.Context, gk schema.GroupKind) (schema.GroupVersionResource, schema.GroupVersionKind, error)
-	PreferredResources(ctx context.Context, relevant func(group string) bool) ([]*metav1.APIResourceList, error)
 	WaitForAvailability(ctx context.Context, gv schema.GroupVersion) error
 }
 
@@ -81,25 +80,19 @@ func (d *DiscoveryClientImpl) GetKindForResource(gvr schema.GroupVersionResource
 	return schema.GroupVersionKind{}, fmt.Errorf("kind not found for %s", gvr.String())
 }
 
-// PreferredResources returns the server's preferred resources, ignoring discovery failures of
-// groups the caller has no interest in: one unavailable group must not block the rest.
-func (d *DiscoveryClientImpl) PreferredResources(ctx context.Context, relevant func(group string) bool) ([]*metav1.APIResourceList, error) {
+func (d *DiscoveryClientImpl) preferredResources(ctx context.Context, group string) ([]*metav1.APIResourceList, error) {
 	apiList, err := d.ServerPreferredResourcesWithContext(ctx)
 	var failed *discovery.ErrGroupDiscoveryFailed
 	if err == nil || !errors.As(err, &failed) {
 		return apiList, err
 	}
 	for gv := range failed.Groups {
-		if relevant(gv.Group) {
+		if gv.Group == group {
 			return nil, err
 		}
 	}
-	logging.FromContext(ctx).Warn("Ignoring discovery failures of other API groups", "error", err)
+	logging.FromContext(ctx).Warn("Ignoring discovery failures of other API groups", "group", group, "error", err)
 	return apiList, nil
-}
-
-func (d *DiscoveryClientImpl) preferredResources(ctx context.Context, group string) ([]*metav1.APIResourceList, error) {
-	return d.PreferredResources(ctx, func(failedGroup string) bool { return failedGroup == group })
 }
 
 func (d *DiscoveryClientImpl) GetPreferredVersion(ctx context.Context, gr schema.GroupResource) (schema.GroupVersionResource, schema.GroupVersionKind, error) {

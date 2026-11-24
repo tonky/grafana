@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/grafana/grafana/pkg/apimachinery/identity"
+	"github.com/grafana/grafana/pkg/storage/unified/resource"
 	"github.com/grafana/grafana/pkg/storage/unified/resourcepb"
 )
 
@@ -97,7 +98,7 @@ func (l grpcLister) page(ctx context.Context, token string) (*resourcepb.ListRes
 			Key: &resourcepb.ResourceKey{Group: l.gvr.Group, Resource: l.gvr.Resource},
 		},
 	})
-	return resp, err
+	return resp, resource.ErrorFromResponse(resp.GetError(), err)
 }
 
 func (l grpcLister) ListKeys(ctx context.Context) (int64, iter.Seq2[Key, error]) {

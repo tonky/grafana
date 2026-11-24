@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Controller, useFormContext, useWatch } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form';
 
 import { selectors } from '@grafana/e2e-selectors';
 import { Trans, t } from '@grafana/i18n';
@@ -13,14 +13,14 @@ export function FolderSelector() {
   const {
     formState: { errors },
     setValue,
-    control,
+    watch,
   } = useFormContext<RuleFormValues>();
 
   const resetGroup = useCallback(() => {
     setValue('group', '');
   }, [setValue]);
 
-  const folder = useWatch({ control, name: 'folder' });
+  const folder = watch('folder');
 
   const handleFolderCreation = (folder: Folder) => {
     resetGroup();
