@@ -21,7 +21,12 @@ grafana: services: enve.profiles.dev.services & {
 pipeline: schema.#Pipeline & {
 	name:        "grafana"
 	description: "Grafana: Go backend, pnpm-workspace frontend, database integration suites"
-	workspace_scope: include: [".enact", "cue.mod", "enve.cue", "enve.lock", "helpers"]
+	workspace_scope: {
+		include: [".enact", "cue.mod", "enve.cue", "enve.lock", "helpers"]
+		// Per-revision generated integration test inventory: excluded from component change
+		// matching so parent->child inventory diffs never trigger `root` in Detect.
+		ignore: [".enact/go_integration_inventory.cue"]
+	}
 	services: grafana.services
 	// CI's matrix jobs install the pnpm workspace (pnpm-lock.yaml) before the frontend's tasks.
 	toolchain: node: package_manager: "pnpm"

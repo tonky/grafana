@@ -19,12 +19,12 @@ let baseModules = [
 
 let backendSources = [
 	"pkg/**", "apps/**", "embed.go", "kinds/**", "conf/**", "emails/**",
-	"public/emails/**", "public/views/**", "public/dashboards/**", "public/app/plugins/**/plugin.json", "public/app/plugins/**/*.go",
+	"public/emails/**", "public/views/**", "public/dashboards/**", "public/maps/**", "public/app/plugins/**/plugin.json", "public/app/plugins/**/*.go",
 	"devenv/dev-dashboards/**", "devenv/dev-dashboards-without-uid/**", "devenv/docker/blocks/{postgres,mysql}_tests/**", "devenv/jsonnet/**",
 	"devenv/scopes/**", "devenv/secrets/**",
 ]
 let backendTrees = [
-	"pkg", "apps", "kinds", "conf", "emails", "public/emails", "public/views", "public/dashboards",
+	"pkg", "apps", "kinds", "conf", "emails", "public/emails", "public/views", "public/dashboards", "public/maps",
 	"public/img/logo_transparent_400x.png",
 	"public/app/plugins", "public/api-enterprise-spec.json", "public/api-merged.json",
 	"packages/grafana-schema/src", "packages/grafana-data/src/types/featureToggles.gen.ts",

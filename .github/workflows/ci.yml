@@ -270,6 +270,7 @@ jobs:
           public/emails
           public/views
           public/dashboards
+          public/maps
           public/img/logo_transparent_400x.png
           public/app/plugins
           public/api-enterprise-spec.json
@@ -412,6 +413,7 @@ jobs:
           public/emails
           public/views
           public/dashboards
+          public/maps
           public/img/logo_transparent_400x.png
           public/app/plugins
           public/api-enterprise-spec.json
@@ -763,6 +765,7 @@ jobs:
           public/emails
           public/views
           public/dashboards
+          public/maps
           public/img/logo_transparent_400x.png
           public/app/plugins
           public/api-enterprise-spec.json
@@ -1025,6 +1028,7 @@ jobs:
           public/emails
           public/views
           public/dashboards
+          public/maps
           public/img/logo_transparent_400x.png
           public/app/plugins
           public/api-enterprise-spec.json
@@ -1953,6 +1957,7 @@ jobs:
           public/emails
           public/views
           public/dashboards
+          public/maps
           public/img/logo_transparent_400x.png
           public/app/plugins
           public/api-enterprise-spec.json
@@ -2230,6 +2235,7 @@ jobs:
           public/emails
           public/views
           public/dashboards
+          public/maps
           public/img/logo_transparent_400x.png
           public/app/plugins
           public/api-enterprise-spec.json
