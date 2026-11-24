@@ -137,8 +137,41 @@ case "${suite}" in
         else
             skip='^$'
         fi
+        run_integration() {
+            local lock_fd="${1}"
+            shift
+            if [[ -n "${run_pattern}" && ${#whole[@]} -gt 0 ]]; then
+                # A shard with both whole-package and named targets: one exact `-run` over
+                # every package would silently filter out the whole-selected packages' tests
+                # (a recall escape). Split whole (`^TestIntegration`) from named-only (`run_pattern`).
+                # shellcheck disable=SC2207
+                whole=($(printf '%s\n' "${whole[@]}" | sort -u))
+                local partial=() pkg status=0
+                for pkg in "${packages[@]}"; do
+                    printf '%s\n' "${whole[@]}" | grep -qxF -- "${pkg}" || partial+=("${pkg}")
+                done
+                if [[ "${lock_fd}" == "9" ]]; then
+                    go test -vet=off -count=1 "$@" ${ENACT_TEST_VERBOSE:+-v} -timeout=12m -run '^TestIntegration' -skip "${skip}" "${whole[@]}" 9>&- || status=$?
+                    if [[ ${#partial[@]} -gt 0 ]]; then
+                        go test -vet=off -count=1 "$@" ${ENACT_TEST_VERBOSE:+-v} -timeout=12m -run "${run_pattern}" -skip "${skip}" "${partial[@]}" 9>&- || status=$?
+                    fi
+                else
+                    go test -vet=off -count=1 "$@" ${ENACT_TEST_VERBOSE:+-v} -timeout=12m -run '^TestIntegration' -skip "${skip}" "${whole[@]}" || status=$?
+                    if [[ ${#partial[@]} -gt 0 ]]; then
+                        go test -vet=off -count=1 "$@" ${ENACT_TEST_VERBOSE:+-v} -timeout=12m -run "${run_pattern}" -skip "${skip}" "${partial[@]}" || status=$?
+                    fi
+                fi
+                return "${status}"
+            fi
+            if [[ "${lock_fd}" == "9" ]]; then
+                go test -vet=off -count=1 "$@" ${ENACT_TEST_VERBOSE:+-v} -timeout=12m -run "${run_re}" -skip "${skip}" "${packages[@]}" 9>&-
+            else
+                exec go test -vet=off -count=1 "$@" ${ENACT_TEST_VERBOSE:+-v} -timeout=12m -run "${run_re}" -skip "${skip}" "${packages[@]}"
+            fi
+        }
         if [[ "${db}" == sqlite ]]; then
-            exec go test -vet=off -count=1 ${ENACT_TEST_VERBOSE:+-v} -timeout=12m -run "${run_re}" -skip "${skip}" "${packages[@]}"
+            run_integration ""
+            exit $?
         fi
         # Compile first, as upstream does, so the turn at the database is the tests' alone.
         go test -vet=off -run='^$' "${packages[@]}" >/dev/null
@@ -157,7 +190,7 @@ case "${suite}" in
         exec 9>>"${locks}/${db}-tests-${port}.flock"
         flock 9
         # Held by this script alone: a process the tests leave running doesn't keep it.
-        go test -vet=off -count=1 -p=1 ${ENACT_TEST_VERBOSE:+-v} -timeout=12m -run "${run_re}" -skip "${skip}" "${packages[@]}" 9>&-
+        run_integration "9" -p=1
         ;;
     *)
         echo "unknown suite: ${suite}" >&2

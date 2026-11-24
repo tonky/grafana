@@ -222,7 +222,7 @@ else
     log_phase server_ready skipped "reason=external_grafana_url"
 fi
 
-effective_cpus() {
+live_cpus() {
     local cpus
     cpus="$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"
     if [[ -r /sys/fs/cgroup/cpu.max ]]; then
@@ -238,9 +238,19 @@ effective_cpus() {
     echo "${cpus}"
 }
 
+pw_live_cpus="$(live_cpus)"
+pw_reserved_cpus="${ENACT_WORKER_CPUS:-}"
+pw_effective_cpus="${pw_live_cpus}"
+if [[ "${pw_reserved_cpus}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+    pw_reserved_int="${pw_reserved_cpus%%.*}"
+    if [[ "${pw_reserved_int}" -gt 0 && "${pw_reserved_int}" -lt "${pw_effective_cpus}" ]]; then
+        pw_effective_cpus="${pw_reserved_int}"
+    fi
+fi
+
 pw_workers="${PLAYWRIGHT_WORKERS:-}"
 if [[ -z "${pw_workers}" ]]; then
-    if [[ "$(effective_cpus)" -le 4 ]]; then
+    if [[ "${pw_effective_cpus}" -le 4 ]]; then
         pw_workers=2
     fi
 fi
@@ -265,7 +275,7 @@ if [[ ${#targets[@]} -gt 0 ]]; then
 fi
 
 pw_start="$(date +%s)"
-log_phase playwright_test start "mode=${playwright_mode} shard=${shard_index}/${shard_total} targets=${#targets[@]} workers=${pw_workers:-config}"
+log_phase playwright_test start "mode=${playwright_mode} shard=${shard_index}/${shard_total} targets=${#targets[@]} workers=${pw_workers:-config} reserved_cpus=${pw_reserved_cpus:-none} live_cpus=${pw_live_cpus} effective_cpus=${pw_effective_cpus}"
 pw_rc=0
 if [[ "${playwright_mode}" == "direct" ]]; then
     # Use the staged root Playwright binary directly so pnpm never triggers a
