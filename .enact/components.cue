@@ -308,7 +308,16 @@ pipeline: {
 	], [
 		for _, p in plugins {
 			outputs: ["public/app/plugins/datasource/\(p.dir)/dist/**"]
-			inputs:  ["public/app/plugins/datasource/\(p.dir)/**", "packages/grafana-plugin-configs/**", "package.json", "pnpm-lock.yaml", "tsconfig.json"]
+			inputs: [
+				"public/app/plugins/datasource/\(p.dir)/**",
+				"packages/grafana-plugin-configs/**",
+				"packages/grafana-i18n/**",
+				"packages/grafana-sql/src/utils/raqbMomentCompat.ts",
+				"LICENSE",
+				"package.json",
+				"pnpm-lock.yaml",
+				"tsconfig.json",
+			]
 			exclude: ["public/app/plugins/datasource/\(p.dir)/dist/**"]
 		},
 	]])
@@ -701,9 +710,6 @@ pipeline: {
 				not_run: [{
 					tests:  ["e2e-playwright/cloud-plugins-suite/azure-monitor.spec.ts", "e2e-playwright/dashboards-search-suite/dashboards-search.spec.ts", "e2e-playwright/storybook/verify.spec.ts"]
 					reason: "Specs outside playwright.config.ts or skipped by --grep-invert @cloud-plugins (cloud-plugins-suite is @cloud-plugins; storybook runs under playwright.storybook.config.ts; dashboards-search-suite has no project in playwright.config.ts)"
-				}, {
-					tests:  ["e2e-playwright/notebooks-suite/notebooks-list-page.spec.ts"]
-					reason: "Upstream missing-fixture bug: 4th describe block (created-by-me filter) opens /notebooks with 0 fixtures and waits on absent checkbox; exit condition: re-enable once upstream or overlay patch seeds and cleans up 1 notebook"
 				}]
 				// A change whose every file lies in a feature area runs that area's suites
 				// (impl/08); any other file, shared server plumbing included, keeps the suite

@@ -1333,6 +1333,26 @@ jobs:
         echo "::error::Container cgroup OOM-killed a process (oom_kill=${oom}, memory.peak=${peak}, memory.max=${limit})"
         fi
         fi
+    - name: Diagnose Disk & Btrfs Qgroup on Failure
+      if: ${{ failure() }}
+      run: |-
+        df -h || true
+        df -i || true
+        btrfs qgroup show -reF / 2>/dev/null || true
+    - name: Log Cgroup Memory & PSI Telemetry
+      if: ${{ always() }}
+      run: |-
+        if [ -d /sys/fs/cgroup ]; then
+        anon=$(awk '$1 == "anon" { print $2 }' /sys/fs/cgroup/memory.stat 2>/dev/null || echo unknown)
+        kernel=$(awk '$1 == "kernel" { print $2 }' /sys/fs/cgroup/memory.stat 2>/dev/null || echo unknown)
+        peak=$(cat /sys/fs/cgroup/memory.peak 2>/dev/null || echo unknown)
+        limit=$(cat /sys/fs/cgroup/memory.max 2>/dev/null || echo unknown)
+        high=$(awk '$1 == "high" { print $2 }' /sys/fs/cgroup/memory.events 2>/dev/null || echo 0)
+        max_ev=$(awk '$1 == "max" { print $2 }' /sys/fs/cgroup/memory.events 2>/dev/null || echo 0)
+        oom=$(awk '$1 == "oom_kill" { print $2 }' /sys/fs/cgroup/memory.events 2>/dev/null || echo 0)
+        psi=$(tr '\n' ' ' < /sys/fs/cgroup/memory.pressure 2>/dev/null || echo unavailable)
+        echo "cgroup telemetry: anon=${anon} kernel=${kernel} peak=${peak} max=${limit} events(high=${high:-0},max=${max_ev:-0},oom_kill=${oom:-0}) psi=${psi}"
+        fi
     - name: Check Package Caches for New Entries
       id: cache_delta
       if: ${{ (!cancelled() && steps.runner_caches.outputs.host == '' && steps.node_l1_cache.outputs.cache-hit != 'true' && env.ENACT_SAVE_EVENT == 'true' && github.event_name != 'pull_request') && steps.stage_plan.outputs.stage_has_work == 'true' }}

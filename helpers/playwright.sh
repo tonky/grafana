@@ -255,38 +255,163 @@ if [[ -z "${pw_workers}" ]]; then
     fi
 fi
 
-args=(
+base_args=(
     test
     --grep-invert @cloud-plugins
     --reporter=list
-    "--output=${work}/results"
 )
 if [[ -n "${pw_workers}" ]]; then
-    args+=("--workers=${pw_workers}")
+    base_args+=("--workers=${pw_workers}")
 fi
 if [[ ${#targets[@]} -eq 0 && "${shard_total}" -gt 1 ]]; then
-    args+=("--shard=${shard_index}/${shard_total}")
+    base_args+=("--shard=${shard_index}/${shard_total}")
 fi
 if [[ "${all_unauthenticated}" -eq 1 ]]; then
-    args+=(--project=unauthenticated)
+    base_args+=(--project=unauthenticated)
 fi
-if [[ ${#targets[@]} -gt 0 ]]; then
-    args+=("${targets[@]}")
+
+run_playwright_cmd() {
+    if [[ "${playwright_mode}" == "direct" ]]; then
+        # Use the staged root Playwright binary directly so pnpm never triggers a
+        # redundant workspace install when node_modules is already linked.
+        PATH="${PWD}/node_modules/.bin:${PATH}" \
+            NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }-C @grafana-app/source" \
+            ./node_modules/.bin/playwright "$@"
+    else
+        NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }-C @grafana-app/source" \
+            pnpm exec playwright "$@"
+    fi
+}
+
+# Authenticated shards share one playwright/.auth/<user>.json storageState per Playwright
+# invocation. Grafana's default token_rotation_interval_minutes is 10m; once a long shard
+# crosses that boundary, the first worker to rotate invalidates the shared cookie for other
+# contexts still loading the stale file (302 -> /login, 401 on writes). Splitting large
+# authenticated target lists by both spec count and estimated case count (board 098/099)
+# makes Playwright re-run its `authenticate` setup project (~42ms) before the 10m boundary
+# without altering server auth config, and isolates heavy specs (e.g. 52-case accessibility).
+batch_size="${GRAFANA_E2E_BATCH_SIZE:-6}"
+max_cases="${GRAFANA_E2E_MAX_CASES_PER_BATCH:-45}"
+if [[ ! "${batch_size}" =~ ^[0-9]+$ ]]; then
+    echo "playwright.sh: invalid GRAFANA_E2E_BATCH_SIZE=${batch_size}" >&2
+    exit 2
+fi
+if [[ ! "${max_cases}" =~ ^[0-9]+$ ]]; then
+    echo "playwright.sh: invalid GRAFANA_E2E_MAX_CASES_PER_BATCH=${max_cases}" >&2
+    exit 2
+fi
+
+spec_case_count_static() {
+    local f="${1%%:*}"
+    if [[ -f "${f}" ]]; then
+        local c
+        c="$(awk '/^[[:space:]]*(test|it)([.](only|fixme|skip|slow))?[[:space:]]*\(/ { n++ } END { print (n > 0 ? n : 1) }' "${f}")"
+        echo "${c}"
+    else
+        echo 1
+    fi
+}
+
+# Use `playwright test --list` (<1s, no browser launch) so dynamically generated suites
+# (e.g. `.forEach` loops like 52-case accessibility.spec.ts, board 103) report exact case
+# counts; fall back to static awk count if listing fails.
+pw_list_file=""
+if [[ "${all_unauthenticated}" -eq 0 && "${batch_size}" -gt 0 && "${max_cases}" -gt 0 && ${#targets[@]} -gt 1 ]]; then
+    pw_list_candidate="${work}/playwright-list.txt"
+    if run_playwright_cmd "${base_args[@]}" --list "${targets[@]}" > "${pw_list_candidate}" 2>/dev/null; then
+        pw_list_file="${pw_list_candidate}"
+    else
+        rm -f "${pw_list_candidate}"
+    fi
+fi
+
+spec_case_count() {
+    local f="${1%%:*}"
+    if [[ -n "${pw_list_file}" && -f "${pw_list_file}" ]]; then
+        local c
+        c="$(awk -v target="${f}" '
+            index($0, "› " target ":") || index($0, "> " target ":") { n++ }
+            END { print n + 0 }
+        ' "${pw_list_file}")"
+        if [[ "${c}" -gt 0 ]]; then
+            echo "${c}"
+            return 0
+        fi
+    fi
+    spec_case_count_static "${f}"
+}
+
+batch_starts=()
+batch_lengths=()
+batch_cases_list=()
+if [[ "${all_unauthenticated}" -eq 0 && "${batch_size}" -gt 0 && ${#targets[@]} -gt 1 ]]; then
+    cur_start=0
+    cur_len=0
+    cur_cases=0
+    for ((i = 0; i < ${#targets[@]}; i++)); do
+        c="$(spec_case_count "${targets[$i]}")"
+        if [[ "${cur_len}" -gt 0 ]] && {
+            [[ "${cur_len}" -ge "${batch_size}" ]] ||
+            [[ "${max_cases}" -gt 0 && $((cur_cases + c)) -gt "${max_cases}" ]]
+        }; then
+            batch_starts+=("${cur_start}")
+            batch_lengths+=("${cur_len}")
+            batch_cases_list+=("${cur_cases}")
+            cur_start="${i}"
+            cur_len=0
+            cur_cases=0
+        fi
+        cur_len=$((cur_len + 1))
+        cur_cases=$((cur_cases + c))
+    done
+    if [[ "${cur_len}" -gt 0 ]]; then
+        batch_starts+=("${cur_start}")
+        batch_lengths+=("${cur_len}")
+        batch_cases_list+=("${cur_cases}")
+    fi
+fi
+
+batch_count="${#batch_starts[@]}"
+if [[ "${batch_count}" -eq 0 ]]; then
+    batch_count=1
 fi
 
 pw_start="$(date +%s)"
-log_phase playwright_test start "mode=${playwright_mode} shard=${shard_index}/${shard_total} targets=${#targets[@]} workers=${pw_workers:-config} reserved_cpus=${pw_reserved_cpus:-none} live_cpus=${pw_live_cpus} effective_cpus=${pw_effective_cpus}"
+log_phase playwright_test start "mode=${playwright_mode} shard=${shard_index}/${shard_total} targets=${#targets[@]} batches=${batch_count} auth_refreshes=${batch_count} max_cases=${max_cases} workers=${pw_workers:-config} reserved_cpus=${pw_reserved_cpus:-none} live_cpus=${pw_live_cpus} effective_cpus=${pw_effective_cpus}"
 pw_rc=0
-if [[ "${playwright_mode}" == "direct" ]]; then
-    # Use the staged root Playwright binary directly so pnpm never triggers a
-    # redundant workspace install when node_modules is already linked.
-    PATH="${PWD}/node_modules/.bin:${PATH}" \
-        NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }-C @grafana-app/source" \
-        ./node_modules/.bin/playwright "${args[@]}" || pw_rc=$?
+if [[ "${batch_count}" -eq 1 ]]; then
+    args=("${base_args[@]}" "--output=${work}/results")
+    if [[ ${#targets[@]} -gt 0 ]]; then
+        args+=("${targets[@]}")
+    fi
+    run_playwright_cmd "${args[@]}" || pw_rc=$?
 else
-    NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }-C @grafana-app/source" \
-        pnpm exec playwright "${args[@]}" || pw_rc=$?
+    for ((b = 0; b < batch_count; b++)); do
+        batch_idx=$((b + 1))
+        batch_targets=("${targets[@]:batch_starts[$b]:batch_lengths[$b]}")
+        batch_cases="${batch_cases_list[$b]}"
+        batch_out="${work}/batch-${batch_idx}-results"
+        batch_start="$(date +%s)"
+        log_phase playwright_batch start "batch=${batch_idx}/${batch_count} targets=${#batch_targets[@]} cases=${batch_cases}"
+        batch_rc=0
+        run_playwright_cmd "${base_args[@]}" "--output=${batch_out}" "${batch_targets[@]}" || batch_rc=$?
+        batch_end="$(date +%s)"
+        log_phase playwright_batch done "batch=${batch_idx}/${batch_count} status=${batch_rc} cases=${batch_cases} duration_s=$((batch_end - batch_start))"
+        if [[ "${batch_rc}" -ne 0 ]]; then
+            if [[ "${pw_rc}" -eq 0 ]]; then
+                pw_rc="${batch_rc}"
+            fi
+            # Preserve failing batch artifacts under ${work}/results/batch-<n> so later
+            # passing batches never overwrite or discard earlier failure diagnostics.
+            if [[ -d "${batch_out}" ]]; then
+                mkdir -p "${work}/results"
+                mv "${batch_out}" "${work}/results/batch-${batch_idx}"
+            fi
+        else
+            rm -rf "${batch_out}"
+        fi
+    done
 fi
 pw_end="$(date +%s)"
-log_phase playwright_test done "mode=${playwright_mode} status=${pw_rc} duration_s=$((pw_end - pw_start))"
+log_phase playwright_test done "mode=${playwright_mode} status=${pw_rc} batches=${batch_count} auth_refreshes=${batch_count} duration_s=$((pw_end - pw_start))"
 exit "${pw_rc}"
