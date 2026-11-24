@@ -468,7 +468,7 @@ jobs:
             /tmp/go-build
             /tmp/go/pkg/mod
           restore-keys: |-
-            ${{ runner.os }}-${{ runner.arch }}-go-seed-${{ hashFiles('go.mod', 'go.sum', 'go.work', 'go.work.sum', 'enve.lock') }}-
+            ${{ runner.os }}-${{ runner.arch }}-go-seed-${{ hashFiles('go.mod', 'go.sum', 'go.work', 'go.work.sum', 'enve.lock') }}
             ${{ runner.os }}-${{ runner.arch }}-go-seed-
             ${{ runner.os }}-go-${{ hashFiles('**/go.mod', '**/go.sum') }}-
             ${{ runner.os }}-go-

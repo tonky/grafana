@@ -306,6 +306,21 @@ pipeline: {
 			inputs:  ["conf/defaults.ini"]
 		},
 	]
+	// Jest setup (`public/test/setupTests.ts` -> `scripts/cli/env-util.ts`) reads
+	// `conf/defaults.ini` and exposes only `[frontend_dev]`. Projecting to `[frontend_dev]`
+	// prevents backend-only INI edits (e.g. `[provisioning]`) from aging or selecting Jest
+	// suites while keeping backend, integration, dashboard-golden, and e2e whole-file.
+	analysis: projected_inputs: [
+		{
+			path:        "conf/defaults.ini"
+			ini_section: "frontend_dev"
+			suites: list.Concat([
+				["frontend:test", "@grafana/test-utils:test"],
+				[for name, p in packages if p.tests {"\(name):test"}],
+				[for name, _ in plugins {"\(name):test"}],
+			])
+		},
+	]
 
 	components: {
 		root: {
@@ -662,7 +677,7 @@ pipeline: {
 			jobs: {
 				lint: (frontendLint & {_up: "../"}).out
 				build: {
-					services: false, arch: "x86_64", arch_reason: "build native grafana-server on X64 so downstream e2e:test shards fan out across ibp8 and free ubuntu-24.04 runners instead of queuing behind lone ARM64 mac1", resources: {cpus: 4, memory_mb: 10240}
+					services: false, resources: {cpus: 4, memory_mb: 10240}
 					outputs: {
 						paths: ["bin/grafana", "public/build", "public/build-swagger", "public/app/plugins/datasource/*/dist", "e2e-playwright/test-plugins/*/dist", "data/plugins-bundled"]
 						key:   ["*", "patches/**", "apps/**", "cue.mod/**", "kinds/**", "packages/**", "pkg/**", "public/**", "scripts/**", "e2e-playwright/test-plugins/**", "helpers/e2e-build.sh"]

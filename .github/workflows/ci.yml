@@ -2387,13 +2387,11 @@ jobs:
         continue-on-error: true
         uses: actions/cache/restore@v6
         with:
-          key: ${{ runner.os }}-${{ runner.arch }}-go-seed-${{ hashFiles('go.mod', 'go.sum', 'go.work', 'go.work.sum', 'enve.lock') }}-${{ github.sha }}
+          key: ${{ runner.os }}-${{ runner.arch }}-go-seed-${{ hashFiles('go.mod', 'go.sum', 'go.work', 'go.work.sum', 'enve.lock') }}
           path: |-
             /tmp/go-build
             /tmp/go/pkg/mod
-          restore-keys: |-
-            ${{ runner.os }}-${{ runner.arch }}-go-seed-${{ hashFiles('go.mod', 'go.sum', 'go.work', 'go.work.sum', 'enve.lock') }}-
-            ${{ runner.os }}-${{ runner.arch }}-go-seed-
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-go-seed-
     - name: Record Restored Package Caches
       if: steps.runner_caches.outputs.host == '' && steps.node_l1_cache.outputs.cache-hit != 'true' && github.event_name != 'pull_request'
       continue-on-error: true
@@ -2478,7 +2476,7 @@ jobs:
             .enact/state/pnpm-cache
             node_modules/.cache
       - name: Save Go build & module seed cache
-        if: ((github.event_name != 'pull_request' && hashFiles('go.mod', 'go.sum', 'go.work', 'go.work.sum', 'enve.lock') != '' && steps.runner_caches.outputs.host == '') && (github.event_name == 'schedule' || github.event_name != 'pull_request' && github.ref_name == github.event.repository.default_branch || !startsWith(steps.go_l1_cache.outputs.cache-matched-key, format('{0}-{1}-go-seed-{2}-', runner.os, runner.arch, hashFiles('go.mod', 'go.sum', 'go.work', 'go.work.sum', 'enve.lock'))))) && github.event_name != 'pull_request' && steps.go_l1_cache.outputs.cache-hit != 'true'
+        if: (github.event_name != 'pull_request' && hashFiles('go.mod', 'go.sum', 'go.work', 'go.work.sum', 'enve.lock') != '' && steps.runner_caches.outputs.host == '') && github.event_name != 'pull_request' && steps.go_l1_cache.outputs.cache-hit != 'true'
         continue-on-error: true
         uses: actions/cache/save@v6
         with:
