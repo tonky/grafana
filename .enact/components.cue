@@ -132,7 +132,7 @@ let e2eAreas = [
 	},
 	// Canvas has no suite of its own at the pin (playwright.config.ts names `canvas`, whose
 	// directory doesn't exist): its panel and feature run the panels suite.
-	{match: ["public/app/plugins/panel/**", "public/app/features/panel/**", "public/app/features/inspector/**", "public/app/features/visualization/**", "public/app/features/canvas/**"], _suites: ["panels-suite"]},
+	{match: ["public/app/plugins/panel/**", "public/app/features/panel/**", "public/app/features/dashboard-scene/panel-edit/**", "public/app/features/inspector/**", "public/app/features/visualization/**", "public/app/features/canvas/**"], _suites: ["panels-suite"]},
 	{match: ["public/app/features/explore/**", "public/app/features/correlations/**"], _suites: ["notebooks-suite"]},
 	{match: ["public/app/features/plugins/admin/**", "pkg/services/pluginsintegration/**"], _suites: ["plugin-catalog-suite"]},
 	{match: ["pkg/tsdb/azuremonitor/**", "public/app/plugins/datasource/azuremonitor/**"], _suites: ["plugin-e2e/azuremonitor"]},

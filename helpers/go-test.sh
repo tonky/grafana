@@ -68,6 +68,13 @@ else
 fi
 # shellcheck disable=SC2207
 packages=($(printf '%s\n' "${packages[@]}" | sort -u))
+if [[ ${#whole[@]} -gt 0 ]]; then
+    # shellcheck disable=SC2207
+    whole=($(printf '%s\n' "${whole[@]}" | sort -u))
+    for pkg in "${whole[@]}"; do
+        echo "# [enact:go-whole-package] ${pkg}"
+    done
+fi
 run_pattern=""
 if [[ ${#tests[@]} -gt 0 ]]; then
     run_pattern="^($(printf '%s\n' "${tests[@]}" | sort -u | paste -sd '|' -))\$"

@@ -157,6 +157,7 @@ jobs:
                 [ -n "$entry" ] && raw_cone+=("$entry")
             done <<<"$ENACT_SPARSE_CONE"
             cone=()
+            to_check=()
             if [ "${#raw_cone[@]}" -gt 0 ]; then
                 for entry in "${raw_cone[@]}"; do
                     case "$entry" in
@@ -164,17 +165,28 @@ jobs:
                             cone+=("$entry")
                             ;;
                         *)
-                            kind=$(git cat-file -t "$GITHUB_SHA:$entry" 2>/dev/null || true)
-                            if [ "$kind" = "blob" ]; then
-                                case "$entry" in
-                                    */*) cone+=("${entry%/*}/.enact-direct-files") ;;
-                                esac
-                            else
-                                cone+=("$entry")
-                            fi
+                            to_check+=("$entry")
                             ;;
                     esac
                 done
+            fi
+            if [ "${#to_check[@]}" -gt 0 ]; then
+                idx=0
+                while IFS= read -r kind; do
+                    entry="${to_check[$idx]}"
+                    idx=$((idx + 1))
+                    if [ "$kind" = "blob" ]; then
+                        case "$entry" in
+                            */*) cone+=("${entry%/*}/.enact-direct-files") ;;
+                        esac
+                    else
+                        cone+=("$entry")
+                    fi
+                done < <(
+                    for entry in "${to_check[@]}"; do
+                        printf '%s:%s\n' "$GITHUB_SHA" "$entry"
+                    done | git cat-file --batch-check='%(objecttype)'
+                )
             fi
             if [ "${#cone[@]}" -gt 0 ]; then
                 git sparse-checkout set --cone "${cone[@]}"
@@ -633,8 +645,10 @@ jobs:
         high=$(awk '$1 == "high" { print $2 }' /sys/fs/cgroup/memory.events 2>/dev/null || echo 0)
         max_ev=$(awk '$1 == "max" { print $2 }' /sys/fs/cgroup/memory.events 2>/dev/null || echo 0)
         oom=$(awk '$1 == "oom_kill" { print $2 }' /sys/fs/cgroup/memory.events 2>/dev/null || echo 0)
+        sampled=$(cat "${GHA_ANON_PEAK_FILE:-/dev/null}" 2>/dev/null || true)
+        [ -n "$sampled" ] || sampled="nonreclaim_peak_sampled=unknown"
         psi=$(tr '\n' ' ' < /sys/fs/cgroup/memory.pressure 2>/dev/null || echo unavailable)
-        echo "cgroup telemetry: anon=${anon} kernel=${kernel} peak=${peak} max=${limit} events(high=${high:-0},max=${max_ev:-0},oom_kill=${oom:-0}) psi=${psi}"
+        echo "cgroup telemetry: anon=${anon} kernel=${kernel} peak=${peak} max=${limit} events(high=${high:-0},max=${max_ev:-0},oom_kill=${oom:-0}) ${sampled} psi=${psi}"
         fi
     - name: Push Updated Dependencies to the Remote Cache
       if: ${{ (success() && env.ENACT_REMOTE_SAVE_EVENT == 'true' && env.ENACT_HAS_SIGNING_KEY == 'true') && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
@@ -667,7 +681,7 @@ jobs:
           .enact/state/diagnostics/grafana-e2e/*/grafana-server.log
         retention-days: "1"
     - name: Upload Recorded Footprints
-      if: ${{ (always() && (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch || github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != github.event.repository.default_branch || github.event_name == 'workflow_dispatch' && inputs.warm_reach == 'true' && github.ref_name == github.event.repository.default_branch)) && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
+      if: ${{ (success() && (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch || github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != github.event.repository.default_branch || github.event_name == 'workflow_dispatch' && inputs.warm_reach == 'true' && github.ref_name == github.event.repository.default_branch)) && !steps.skip.outputs.hit && steps.outputs-host-recover.outputs.cache-hit != 'true' }}
       continue-on-error: true
       uses: actions/upload-artifact@v7
       with:

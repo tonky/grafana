@@ -1,12 +1,6 @@
 import { fireEvent, render, screen } from 'test/test-utils';
 
-import {
-  AdHocFiltersVariable,
-  ConstantVariable,
-  CustomVariable,
-  QueryVariable,
-  type SceneVariable,
-} from '@grafana/scenes';
+import { ConstantVariable, CustomVariable, QueryVariable, type SceneVariable } from '@grafana/scenes';
 import { appEvents } from 'app/core/app_events';
 import { ShowConfirmModalEvent } from 'app/types/events';
 
@@ -44,19 +38,11 @@ describe('<VariableEditActions />', () => {
     jest.clearAllMocks();
   });
 
-  test('when the user hovers over an ad hoc filter settings action, the tooltip says Filter settings', async () => {
-    const { user } = renderVariableEditActions(new AdHocFiltersVariable({ name: 'filter0', enableGroupBy: true }));
-
-    await user.hover(screen.getByRole('button', { name: 'Filter settings' }));
-
-    expect(screen.getByRole('tooltip')).toHaveTextContent('Filter settings');
-  });
-
   describe('when the variable is a ConstantVariable', () => {
-    test('renders Variable settings, Duplicate, and Delete controls', () => {
+    test('renders Settings, Duplicate, and Delete controls', () => {
       renderVariableEditActions(new ConstantVariable({ name: 'constVar', value: '42' }));
 
-      expect(screen.getByRole('button', { name: 'Variable settings' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Duplicate' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
 
@@ -66,10 +52,10 @@ describe('<VariableEditActions />', () => {
   });
 
   describe('when the variable is a CustomVariable', () => {
-    test('renders Variable settings, Edit values, Duplicate, and Delete controls', () => {
+    test('renders Settings, Edit values, Duplicate, and Delete controls', () => {
       renderVariableEditActions(new CustomVariable({ name: 'testVar' }));
 
-      expect(screen.getByRole('button', { name: 'Variable settings' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Edit values' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Duplicate' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
@@ -87,10 +73,10 @@ describe('<VariableEditActions />', () => {
   });
 
   describe('when the variable is a QueryVariable', () => {
-    test('renders Variable settings, Edit query, Duplicate, and Delete controls', () => {
+    test('renders Settings, Edit query, Duplicate, and Delete controls', () => {
       renderVariableEditActions(new QueryVariable({ name: 'queryVar', query: 'label_values(job)' }));
 
-      expect(screen.getByRole('button', { name: 'Variable settings' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Edit query' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Duplicate' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
@@ -109,10 +95,10 @@ describe('<VariableEditActions />', () => {
     });
   });
 
-  test('calls onClickEdit when the user clicks on Variable settings', () => {
+  test('calls onClickEdit when the user clicks on Settings', () => {
     const { onClickEdit } = renderVariableEditActions(new CustomVariable({ name: 'testVar' }));
 
-    fireEvent.click(screen.getByRole('button', { name: 'Variable settings' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
 
     expect(onClickEdit).toHaveBeenCalledTimes(1);
   });

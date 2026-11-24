@@ -36,12 +36,6 @@ jest.mock('@grafana/runtime', () => {
   return { ...runtime, updateAppPluginSettings: jest.fn() };
 });
 
-const reloadDataSourceSrvMock = jest.fn();
-jest.mock('../../datasource_srv', () => ({
-  ...jest.requireActual('../../datasource_srv'),
-  getDatasourceSrv: () => ({ reload: reloadDataSourceSrvMock }),
-}));
-
 const updateAppPluginSettingsMock = jest.mocked(updateAppPluginSettings);
 
 jest.mock('../hooks/usePluginConfig.tsx', () => ({ usePluginConfig: jest.fn(() => ({ value: { meta: {} } })) }));
@@ -400,9 +394,7 @@ describe('Plugin details page', () => {
       // @ts-ignore
       api.uninstallPlugin = jest.fn();
 
-      const frontendSettings = { panels: {}, datasources: {}, defaultDatasource: '' };
-      const get = jest.fn().mockResolvedValue(frontendSettings);
-      setBackendSrv({ ...originalBackendSrv, get });
+      setBackendSrv({ ...originalBackendSrv, get: jest.fn().mockResolvedValue({ panels: [] }) });
 
       const { queryByText, getByRole, findByRole, user } = renderPluginDetails({
         id,
@@ -433,9 +425,6 @@ describe('Plugin details page', () => {
 
       // Check if the modal disappeared
       expect(queryByText('Uninstall Akumuli')).not.toBeInTheDocument();
-      // One /api/frontend/settings payload serves the plugin metas and the data source reload.
-      await waitFor(() => expect(reloadDataSourceSrvMock).toHaveBeenCalledWith(frontendSettings));
-      expect(get.mock.calls.filter(([url]) => url === '/api/frontend/settings')).toHaveLength(1);
     });
 
     it('should not display the install / uninstall / update buttons if the GCOM api is not available', async () => {

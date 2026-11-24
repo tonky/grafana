@@ -1,5 +1,3 @@
-import { cleanup } from '@testing-library/react';
-
 import { config } from '@grafana/runtime';
 import { FlagKeys } from '@grafana/runtime/internal';
 import { setTestFlags } from '@grafana/test-utils/unstable';
@@ -25,9 +23,6 @@ export function setupPrometheusAlertingPlugin() {
 
   afterEach(() => {
     config.unifiedAlertingEnabled = unifiedAlertingEnabled;
-    // Testing Library unmounts after this hook; resetting flags first would notify still-mounted
-    // flag hooks outside act()
-    cleanup();
     setTestFlags();
   });
 }

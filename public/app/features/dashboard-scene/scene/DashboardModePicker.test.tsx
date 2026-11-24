@@ -136,7 +136,7 @@ function renderPicker(configure?: (scene: DashboardScene) => void) {
 
 async function openPicker(configure?: (scene: DashboardScene) => void) {
   const rendered = renderPicker(configure);
-  await rendered.user.click(screen.getByRole('button', { name: /^Dashboard mode:/ }));
+  await rendered.user.click(screen.getByRole('button', { name: 'Change dashboard mode' }));
   return rendered;
 }
 
@@ -156,16 +156,10 @@ it('names Composer and describes it in a tooltip on hover', async () => {
   expect(await screen.findByRole('tooltip')).toHaveTextContent(/^Point at anything and ask the Assistant\.$/);
 });
 
-it('renders nothing when dashboard preview mode is off', () => {
-  setTestFlags({ ...FLAGS, 'grafana.dashboardPreviewMode': false });
+it('places Composer after the mode button group', () => {
   renderPicker();
-  expect(screen.queryByRole('button', { name: /^Dashboard mode:/ })).not.toBeInTheDocument();
-  expect(composerItem()).not.toBeInTheDocument();
-});
-
-it('places Composer after the mode dropdown', () => {
-  renderPicker();
-  expect(screen.getByRole('button', { name: 'Dashboard mode: Viewing' }).nextElementSibling).toBe(composerItem());
+  const group = screen.getByRole('button', { name: 'Dashboard mode: Viewing' }).parentElement!;
+  expect(group.nextElementSibling).toBe(composerItem());
 });
 
 it('no longer lists Composer in the mode menu', async () => {
@@ -195,11 +189,21 @@ it('offers Composer while Assistant listens for dashboards, and drops it once no
   expect(composerItem()).not.toBeInTheDocument();
 });
 
-describe('the mode menu', () => {
+it('keeps the main button the first child of its button group', async () => {
+  await openPicker();
+  const main = screen.getByRole('button', { name: 'Dashboard mode: Viewing', hidden: true });
+  const group = main.parentElement!;
+  expect(group.firstElementChild).toBe(main);
+  expect([...group.children].every((child) => child.tagName === 'BUTTON')).toBe(true);
+});
+
+describe('the main button', () => {
+  const mainButton = (mode: string) => screen.getByRole('button', { name: `Dashboard mode: ${mode}`, hidden: true });
+
   it('switches Viewing to Editing while Composer is available, without asking Assistant', async () => {
     const { user, scene } = await openPicker();
 
-    await user.click(screen.getByRole('menuitemradio', { name: /Editing/ }));
+    await user.click(mainButton('Viewing'));
 
     expect(getDashboardMode(scene.state)).toBe('edit');
     expect(assistant).not.toHaveBeenCalled();
@@ -209,15 +213,15 @@ describe('the mode menu', () => {
     setTestFlags({ ...FLAGS, 'grafana.dashboardComposer': false });
     const { user, scene } = await openPicker();
 
-    await user.click(screen.getByRole('menuitemradio', { name: /Editing/ }));
+    await user.click(mainButton('Viewing'));
 
     expect(getDashboardMode(scene.state)).toBe('edit');
   });
 
-  it('switches Editing to Viewing', async () => {
+  it('still switches Editing to Viewing', async () => {
     const { user, scene } = await openPicker((dashboard) => dashboard.setDashboardMode('edit', 'picker'));
 
-    await user.click(screen.getByRole('menuitemradio', { name: /Viewing/ }));
+    await user.click(mainButton('Editing'));
 
     expect(getDashboardMode(scene.state)).toBe('view');
   });
@@ -394,6 +398,7 @@ describe('while Composer is active', () => {
     await openPicker(enterComposer(from));
     const button = mainButton(label);
     expect(within(button).getByTestId(icon)).toBeInTheDocument();
+    expect(button.parentElement!.firstElementChild).toBe(button);
     expect(screen.getByRole('menuitemradio', { name: new RegExp(label) })).toBeChecked();
     expect(screen.queryByTestId('icon-ai-sparkle')).not.toBeInTheDocument();
     expect(composerItem()).toHaveAttribute('aria-pressed', 'true');

@@ -195,7 +195,6 @@ func TestSyncReasonMethods(t *testing.T) {
 		{ReasonMimirFetch, "mimir_fetch", "MimirFetchFailed"},
 		{ReasonSave, "save", "SaveFailed"},
 		{ReasonIdentifierMismatch, "identifier_mismatch", "IdentifierMismatch"},
-		{ReasonIdentifierTaken, "identifier_taken", "IdentifierTaken"},
 		{ReasonUnclassified, "unclassified", "SyncFailed"},
 	}
 	for _, c := range cases {
