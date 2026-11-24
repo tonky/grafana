@@ -295,7 +295,7 @@ pipeline: {
 	// the same footprints as a cold one, so enact-node/2 jest footprints stay current
 	// (FINDINGS#F-js-jest-transform-cache-keeps-reads).
 	analysis: jest_cache_keeps_reads: true
-	analysis: derived: [
+	analysis: derived: list.Concat([[
 		{
 			outputs: ["apps/dashboard/pkg/migration/testdata/output/**", "apps/dashboard/pkg/migration/testdata/dev-dashboards-output/**", "apps/dashboard/pkg/migration/conversion/testdata/output/**", "apps/dashboard/pkg/migration/conversion/testdata/migrated_dashboards_output/**"]
 			inputs:  ["apps/dashboard/Makefile", "apps/dashboard/go.mod", "apps/dashboard/go.sum", "apps/dashboard/pkg/apis/**", "apps/dashboard/pkg/migration/**"]
@@ -305,7 +305,13 @@ pipeline: {
 			outputs: ["data", "data/**"]
 			inputs:  ["conf/defaults.ini"]
 		},
-	]
+	], [
+		for _, p in plugins {
+			outputs: ["public/app/plugins/datasource/\(p.dir)/dist/**"]
+			inputs:  ["public/app/plugins/datasource/\(p.dir)/**", "packages/grafana-plugin-configs/**", "package.json", "pnpm-lock.yaml", "tsconfig.json"]
+			exclude: ["public/app/plugins/datasource/\(p.dir)/dist/**"]
+		},
+	]])
 	// Jest setup (`public/test/setupTests.ts` -> `scripts/cli/env-util.ts`) reads
 	// `conf/defaults.ini` and exposes only `[frontend_dev]`. Projecting to `[frontend_dev]`
 	// prevents backend-only INI edits (e.g. `[provisioning]`) from aging or selecting Jest
@@ -695,6 +701,9 @@ pipeline: {
 				not_run: [{
 					tests:  ["e2e-playwright/cloud-plugins-suite/azure-monitor.spec.ts", "e2e-playwright/dashboards-search-suite/dashboards-search.spec.ts", "e2e-playwright/storybook/verify.spec.ts"]
 					reason: "Specs outside playwright.config.ts or skipped by --grep-invert @cloud-plugins (cloud-plugins-suite is @cloud-plugins; storybook runs under playwright.storybook.config.ts; dashboards-search-suite has no project in playwright.config.ts)"
+				}, {
+					tests:  ["e2e-playwright/notebooks-suite/notebooks-list-page.spec.ts"]
+					reason: "Upstream missing-fixture bug: 4th describe block (created-by-me filter) opens /notebooks with 0 fixtures and waits on absent checkbox; exit condition: re-enable once upstream or overlay patch seeds and cleans up 1 notebook"
 				}]
 				// A change whose every file lies in a feature area runs that area's suites
 				// (impl/08); any other file, shared server plumbing included, keeps the suite
