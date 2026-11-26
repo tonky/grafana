@@ -354,6 +354,7 @@ _generatedIntegrationTests: [
 	"pkg/tests/apis/iam/serviceaccount/service_account_token_integration_test.go",
 	"pkg/tests/apis/iam/team/team_integration_test.go",
 	"pkg/tests/apis/iam/team/team_members_search_integration_test.go",
+	"pkg/tests/apis/iam/team/team_memberships_integration_test.go",
 	"pkg/tests/apis/iam/team/team_redirect_integration_test.go",
 	"pkg/tests/apis/iam/team/team_search_integration_test.go",
 	"pkg/tests/apis/iam/team/team_service_integration_test.go",
