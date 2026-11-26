@@ -247,6 +247,7 @@ _generatedIntegrationTests: [
 	"pkg/storage/unified/sql/backend_bulk_chunked_test.go",
 	"pkg/storage/unified/sql/backend_bulk_test.go",
 	"pkg/storage/unified/sql/backend_gc_test.go",
+	"pkg/storage/unified/sql/backend_test.go",
 	"pkg/storage/unified/sql/list_iterator_test.go",
 	"pkg/storage/unified/sql/test/benchmark_test.go",
 	"pkg/storage/unified/sql/test/blob_stream_test.go",
