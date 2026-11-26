@@ -23,6 +23,10 @@ on:
       base_ref:
         description: Target base branch for diff detection (e.g. main, master, a release branch)
         required: false
+      control_pin_required:
+        description: Require all four matched-control SHA-256 input pins before fan-out
+        required: false
+        default: "false"
       files:
         description: File(s) to plan as changed instead of the git diff, comma-separated (e.g. one test file)
         required: false
@@ -34,6 +38,18 @@ on:
         description: Disable task cache, forcing full execution
         required: false
         default: "false"
+      pin_diff_sha256:
+        description: Expected SHA-256 of canonical diff bytes for matched controls
+        required: false
+      pin_history_sha256:
+        description: Expected SHA-256 of history snapshot (snapshot.json) for matched controls
+        required: false
+      pin_reach_age_sha256:
+        description: Expected SHA-256 of reach age sidecar (map.age.json) for matched controls
+        required: false
+      pin_reach_map_sha256:
+        description: Expected SHA-256 of handed-off reach map (map.bin) for matched controls
+        required: false
       seed_caches:
         description: Run the jobs of seeded caches cold and save the caches (on the default branch)
         required: false
@@ -522,6 +538,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_READ_SECRET_ACCESS_KEY || env.R2_READ_SECRET_ACCESS_KEY }}
         ENACT_BASE_REF: ${{ inputs.base_ref || github.base_ref || github.event.pull_request.base.ref }}
         ENACT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        ENACT_CONTROL_PIN_REQUIRED: ${{ inputs.control_pin_required }}
         ENACT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'master' }}
         ENACT_DETECT_OTHER_OUTPUTS: ${{ format('{{"history_input_artifact":{0}}}', toJSON(steps.history_restore.outputs.artifact)) }}
         ENACT_EVENT_BEFORE: ${{ github.event.before }}
@@ -534,6 +551,10 @@ jobs:
         ENACT_INPUT_UPDATED: ${{ inputs.updated }}
         ENACT_INPUT_WARM_REACH: ${{ inputs.warm_reach }}
         ENACT_INTEGRATION_BRANCH: ${{ vars.ENACT_INTEGRATION_BRANCH }}
+        ENACT_PIN_DIFF_SHA256: ${{ inputs.pin_diff_sha256 }}
+        ENACT_PIN_HISTORY_SHA256: ${{ inputs.pin_history_sha256 }}
+        ENACT_PIN_REACH_AGE_SHA256: ${{ inputs.pin_reach_age_sha256 }}
+        ENACT_PIN_REACH_MAP_SHA256: ${{ inputs.pin_reach_map_sha256 }}
         ENACT_R2_BUCKET: ${{ secrets.R2_BUCKET || env.R2_BUCKET }}
         ENACT_RECORD: ${{ (github.event_name == 'workflow_dispatch' && inputs.warm_reach == 'true' && github.ref_name == github.event.repository.default_branch) && 'every' || (github.event_name == 'push' && github.ref_name == github.event.repository.default_branch || github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref != github.event.repository.default_branch) && 'auto' || 'off' }}
         ENACT_SAME_REPO_PR: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
@@ -835,6 +856,8 @@ jobs:
           public/app
           public/app/plugins/panel
           public/app/plugins/datasource
+          public/test
+          scripts/tests
           .golangci.yml
           .air.toml
           pkg/ruleguard.rules.go
@@ -874,13 +897,11 @@ jobs:
           scripts/codemods
           scripts/codeowners-manifest
           scripts/validate-npm-packages.sh
-          scripts/tests
           scripts/docs
           packages/README.md
           packages/rollup.config.parts.ts
           packages/get-document
           packages/mapbox-jsonlint-lines-primitives
-          public/test
           packages/grafana-runtime/src/services/pluginExtensions/usePluginComponents.ts
           packages/grafana-test-utils/src/matchers
           packages/grafana-api-clients/src/clients/rtkq/folder/v1beta1
@@ -1098,6 +1119,8 @@ jobs:
           public/app
           public/app/plugins/panel
           public/app/plugins/datasource
+          public/test
+          scripts/tests
           .golangci.yml
           .air.toml
           pkg/ruleguard.rules.go
@@ -1137,13 +1160,11 @@ jobs:
           scripts/codemods
           scripts/codeowners-manifest
           scripts/validate-npm-packages.sh
-          scripts/tests
           scripts/docs
           packages/README.md
           packages/rollup.config.parts.ts
           packages/get-document
           packages/mapbox-jsonlint-lines-primitives
-          public/test
           packages/grafana-runtime/src/services/pluginExtensions/usePluginComponents.ts
           packages/grafana-test-utils/src/matchers
           packages/grafana-api-clients/src/clients/rtkq/folder/v1beta1
@@ -1249,6 +1270,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_READ_SECRET_ACCESS_KEY || env.R2_READ_SECRET_ACCESS_KEY }}
         ENACT_BASE_REF: ${{ inputs.base_ref || github.base_ref || github.event.pull_request.base.ref }}
         ENACT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        ENACT_CONTROL_PIN_REQUIRED: ${{ inputs.control_pin_required }}
         ENACT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'master' }}
         ENACT_DETECT_STAGE_HAS_WORK: ${{ needs.detect.outputs.stage_work != '' && fromJson(needs.detect.outputs.stage_work)['preflight'].has_work || '' }}
         ENACT_DETECT_STAGE_NEEDS_NODE: ${{ needs.detect.outputs.stage_work != '' && fromJson(needs.detect.outputs.stage_work)['preflight'].needs_node || '' }}
@@ -1261,6 +1283,10 @@ jobs:
         ENACT_INPUT_FILES: ${{ inputs.files }}
         ENACT_INPUT_UPDATED: ${{ inputs.updated }}
         ENACT_INTEGRATION_BRANCH: ${{ vars.ENACT_INTEGRATION_BRANCH }}
+        ENACT_PIN_DIFF_SHA256: ${{ inputs.pin_diff_sha256 }}
+        ENACT_PIN_HISTORY_SHA256: ${{ inputs.pin_history_sha256 }}
+        ENACT_PIN_REACH_AGE_SHA256: ${{ inputs.pin_reach_age_sha256 }}
+        ENACT_PIN_REACH_MAP_SHA256: ${{ inputs.pin_reach_map_sha256 }}
         ENACT_R2_BUCKET: ${{ secrets.R2_BUCKET || env.R2_BUCKET }}
         ENACT_REACH_PULLED: "1"
         ENACT_RUNNER_ALLOCATION: "{\"cpus\":6.0,\"memory_mb\":12288,\"runtime_reserve_mb\":2048}"
@@ -1336,6 +1362,7 @@ jobs:
         ENACT_BASE_REF: ${{ inputs.base_ref || github.base_ref || github.event.pull_request.base.ref }}
         ENACT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         ENACT_CACHE_WRITE: read_only
+        ENACT_CONTROL_PIN_REQUIRED: ${{ inputs.control_pin_required }}
         ENACT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'master' }}
         ENACT_EVENT_BEFORE: ${{ github.event.before }}
         ENACT_FORCE_NO_CACHE: ${{ inputs.no_cache == 'true' || vars.ENACT_NO_CACHE == 'true' || contains(github.event.pull_request.title, '[no-cache]') || contains(github.event.pull_request.body, '[no-cache]') || contains(github.event.pull_request.labels.*.name, 'no-cache') }}
@@ -1344,6 +1371,10 @@ jobs:
         ENACT_INPUT_FILES: ${{ inputs.files }}
         ENACT_INPUT_UPDATED: ${{ inputs.updated }}
         ENACT_INTEGRATION_BRANCH: ${{ vars.ENACT_INTEGRATION_BRANCH }}
+        ENACT_PIN_DIFF_SHA256: ${{ inputs.pin_diff_sha256 }}
+        ENACT_PIN_HISTORY_SHA256: ${{ inputs.pin_history_sha256 }}
+        ENACT_PIN_REACH_AGE_SHA256: ${{ inputs.pin_reach_age_sha256 }}
+        ENACT_PIN_REACH_MAP_SHA256: ${{ inputs.pin_reach_map_sha256 }}
         ENACT_R2_BUCKET: ${{ secrets.R2_BUCKET || env.R2_BUCKET }}
         ENACT_REACH_PULLED: "1"
         ENACT_RUNNER_ALLOCATION: "{\"cpus\":6.0,\"memory_mb\":12288,\"runtime_reserve_mb\":2048}"
@@ -2053,6 +2084,8 @@ jobs:
           public/app
           public/app/plugins/panel
           public/app/plugins/datasource
+          public/test
+          scripts/tests
           .golangci.yml
           .air.toml
           pkg/ruleguard.rules.go
@@ -2092,13 +2125,11 @@ jobs:
           scripts/codemods
           scripts/codeowners-manifest
           scripts/validate-npm-packages.sh
-          scripts/tests
           scripts/docs
           packages/README.md
           packages/rollup.config.parts.ts
           packages/get-document
           packages/mapbox-jsonlint-lines-primitives
-          public/test
           packages/grafana-runtime/src/services/pluginExtensions/usePluginComponents.ts
           packages/grafana-test-utils/src/matchers
           packages/grafana-api-clients/src/clients/rtkq/folder/v1beta1
@@ -2331,6 +2362,8 @@ jobs:
           public/app
           public/app/plugins/panel
           public/app/plugins/datasource
+          public/test
+          scripts/tests
           .golangci.yml
           .air.toml
           pkg/ruleguard.rules.go
@@ -2370,13 +2403,11 @@ jobs:
           scripts/codemods
           scripts/codeowners-manifest
           scripts/validate-npm-packages.sh
-          scripts/tests
           scripts/docs
           packages/README.md
           packages/rollup.config.parts.ts
           packages/get-document
           packages/mapbox-jsonlint-lines-primitives
-          public/test
           packages/grafana-runtime/src/services/pluginExtensions/usePluginComponents.ts
           packages/grafana-test-utils/src/matchers
           packages/grafana-api-clients/src/clients/rtkq/folder/v1beta1

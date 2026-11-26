@@ -78,7 +78,7 @@ let goldenTests = [
 	"public/app/features/dashboard-scene/v2schema/dashboardV2Schema.corpus.test.ts",
 ]
 
-let frontendTests = "public/app public/swagger scripts/tests \(strings.Join([for t in goldenTests {"'!" + t + "'"}], " "))"
+let frontendTests = "public/app public/swagger public/test scripts/tests \(strings.Join([for t in goldenTests {"'!" + t + "'"}], " "))"
 
 let databases = {
 	sqlite:   {}
@@ -387,7 +387,7 @@ pipeline: {
 				"stylelint.config.js", "knip.config.ts", "i18next.config.ts", ".madgerc", ".levignore.js", ".nxignore",
 				"scripts/tsconfig.base.json", "scripts/webpack/**", "scripts/rspack/**", "scripts/release/**",
 				"scripts/cli/**", "scripts/codemods/**", "scripts/codeowners-manifest/**",
-				"scripts/*.js", "scripts/*.mjs", "scripts/*.ts", "scripts/validate-npm-packages.sh", "scripts/tests/**", "scripts/docs/**",
+				"scripts/*.js", "scripts/*.mjs", "scripts/*.ts", "scripts/validate-npm-packages.sh", "scripts/docs/**",
 				"packages/README.md", "packages/rollup.config.parts.ts",
 				"packages/get-document/**", "packages/mapbox-jsonlint-lines-primitives/**",
 				"public/test/**",
@@ -479,7 +479,7 @@ pipeline: {
 						timeout: "15m"
 					},
 					{name: "swagger", command: "bash -c 'trap \"git checkout -- public/api-merged.json 2>/dev/null || true; rm -f public/api-spec.json\" EXIT; make swagger-gen'", filter: {include: ["pkg/api/**", "pkg/server/**", "pkg/services/ngalert/api/**"], on_empty: "skip"}, timeout: "15m"},
-					{name: "feature-toggles", command: "go test -run '^TestFeatureToggleFiles$' ./pkg/services/featuremgmt/ && git diff --exit-code -- pkg/services/featuremgmt/ packages/grafana-data/src/types/featureToggles.gen.ts packages/grafana-runtime/src/internal/openFeature/ docs/sources/setup-grafana/configure-grafana/feature-toggles/index.md", filter: {include: ["pkg/services/featuremgmt/**"], on_empty: "skip"}, timeout: "5m"},
+					{name: "feature-toggles", command: "go test -run '^TestFeatureToggleFiles$' ./pkg/services/featuremgmt/ && git diff --exit-code -- pkg/services/featuremgmt/ ':!pkg/services/featuremgmt/toggles_gen_test.go' packages/grafana-data/src/types/featureToggles.gen.ts packages/grafana-runtime/src/internal/openFeature/ docs/sources/setup-grafana/configure-grafana/feature-toggles/index.md", filter: {include: ["pkg/services/featuremgmt/**"], on_empty: "skip"}, timeout: "5m"},
 					{name: "k8s-codegen", command: "bash -c 'pkgs=$(printf \"%s\\n\" {changed_files} | sed -n \"s|^pkg/apis/\\([^/]*\\)/.*|\\1|p; s|^apps/\\([^/]*\\)/pkg/.*|\\1|p; s|^apps/alerting/\\([^/]*\\)/pkg/.*|\\1|p\" | sort -u); if [ -n \"$pkgs\" ]; then for p in $pkgs; do ./hack/update-codegen.sh \"$p\"; done; else ./hack/update-codegen.sh; fi && git diff --exit-code -- pkg/apis pkg/generated apps'", filter: {include: ["pkg/apis/**", "pkg/generated/**", "apps/*/pkg/{apis,generated}/**", "apps/alerting/*/pkg/{apis,generated}/**"], on_empty: "skip"}, timeout: "15m"},
 				]
 			}).out
@@ -609,6 +609,8 @@ pipeline: {
 				"public/app/{AppWrapper.tsx,app.ts,dev-utils.ts,dev.ts,index.ts,initApp.ts,initPreferences.ts,initPreferences.test.ts,legacyAPIHandling.ts,legacyAPIHandling.test.ts,polyfills.ts}",
 				"public/{boot,fonts,img,lib,locales,maps,gazetteer,sass,swagger,vendor}/**",
 				"public/{api-enterprise-spec.json,api-merged.json,openapi3.json,mockServiceWorker.js,robots.txt}",
+				"public/test/**/*.test.{ts,tsx,js,jsx}",
+				"scripts/tests/**",
 				"apps/shorturl/plugin/src/**",
 			]
 			depends_on: ["js-root", "@grafana/alerting", "@grafana/api-clients", "@grafana/data", "@grafana/e2e-selectors", "@grafana/flamegraph", "@grafana/i18n", "@grafana/o11y-ds-frontend", "@grafana/runtime", "@grafana/schema", "@grafana/sql", "@grafana/ui", "@grafana/test-utils"]
@@ -652,11 +654,13 @@ pipeline: {
 					"public/app/plugins/datasource/{alertmanager,dashboard,grafana,mixed}/**/*.test.{ts,tsx,js,jsx}",
 					"public/app/{initPreferences,legacyAPIHandling}.test.ts",
 					"public/swagger/**/*.test.{ts,tsx,js,jsx}",
+					"public/test/**/*.test.{ts,tsx,js,jsx}",
+					"scripts/tests/**/*.test.{ts,tsx,js,jsx}",
 				]
 				exclude: goldenTests
 				rules: [
 					{
-						match:   ["public/{app,swagger,vendor,lib}/**/*.{ts,tsx,js,jsx,mjs,cjs,json}", "public/{api-enterprise-spec.json,api-merged.json,openapi3.json,mockServiceWorker.js}", "apps/shorturl/plugin/src/**"]
+						match:   ["public/{app,swagger,test,vendor,lib}/**/*.{ts,tsx,js,jsx,mjs,cjs,json}", "public/{api-enterprise-spec.json,api-merged.json,openapi3.json,mockServiceWorker.js}", "scripts/tests/**/*.{ts,tsx,js,jsx,mjs,cjs,json}", "apps/shorturl/plugin/src/**"]
 						command: "helpers/jest-related.sh . \(frontendTests) -- {changed_files}"
 					},
 					jestIgnore,
