@@ -89,7 +89,13 @@ export JEST_PATHS="^${pattern}"
 args=(--ci "--filter=${GRAFANA_ROOT}/helpers/jest-filter.cjs")
 [[ "${JEST_LIST:-}" == 1 ]] && args+=(--listTests)
 # jest refuses --maxWorkers beside the traced runs' --runInBand.
-workers="--maxWorkers=${ENACT_SHARD_WORKERS:-50%}"
+# Leave 1 vCPU headroom for Jest's coordinator/GC when >=4 workers are admitted so 1000ms
+# RTL findByRole deadlines do not flake under 100% CPU saturation.
+jest_workers="${ENACT_SHARD_WORKERS:-50%}"
+if [[ "${jest_workers}" =~ ^[0-9]+$ && "${jest_workers}" -ge 4 ]]; then
+    jest_workers="$(( jest_workers - 1 ))"
+fi
+workers="--maxWorkers=${jest_workers}"
 if [[ ${#targets[@]} -gt 0 ]]; then
     echo "🧪 jest (${project}): tests related to ${#targets[@]} file(s)" >&2
     # Recording: each wanted target traced alone; jest-attribution.cjs tells enact the tests

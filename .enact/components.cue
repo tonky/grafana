@@ -614,6 +614,9 @@ pipeline: {
 				"apps/shorturl/plugin/src/**",
 			]
 			depends_on: ["js-root", "@grafana/alerting", "@grafana/api-clients", "@grafana/data", "@grafana/e2e-selectors", "@grafana/flamegraph", "@grafana/i18n", "@grafana/o11y-ds-frontend", "@grafana/runtime", "@grafana/schema", "@grafana/sql", "@grafana/ui", "@grafana/test-utils"]
+			workspace_scope: include: [
+				"docs/sources/visualizations/panels-visualizations/query-transform-data/transform-data/index.md",
+			]
 			resources:  {cpus: 4, memory_mb: 8192}
 			shards:     8
 			jobs: lint: (frontendLint & {

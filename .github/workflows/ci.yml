@@ -321,6 +321,7 @@ jobs:
           go.sum
           go.work
           go.work.sum
+          docs/sources/visualizations/panels-visualizations/query-transform-data/transform-data/index.md
     - name: Checkout Repository (sparse)
       id: sparse_checkout
       if: ${{ steps.runner_caches.outputs.host == '' || steps.host_checkout.outcome == 'failure' }}
@@ -464,6 +465,7 @@ jobs:
           go.sum
           go.work
           go.work.sum
+          docs/sources/visualizations/panels-visualizations/query-transform-data/transform-data/index.md
     - name: Restore Reach Store
       id: reach-store
       continue-on-error: true
@@ -853,6 +855,7 @@ jobs:
           go.work.sum
           helpers/playwright.sh
           helpers/e2e-build.sh
+          docs/sources/visualizations/panels-visualizations/query-transform-data/transform-data/index.md
           public/app
           public/app/plugins/panel
           public/app/plugins/datasource
@@ -1116,6 +1119,7 @@ jobs:
           go.work.sum
           helpers/playwright.sh
           helpers/e2e-build.sh
+          docs/sources/visualizations/panels-visualizations/query-transform-data/transform-data/index.md
           public/app
           public/app/plugins/panel
           public/app/plugins/datasource
@@ -2071,6 +2075,7 @@ jobs:
           pkg/storage/unified/resource/kv
           pkg/storage/unified/resourcepb
           pkg/util/sqlite
+          docs/sources/visualizations/panels-visualizations/query-transform-data/transform-data/index.md
           e2e-playwright
           playwright.config.ts
           playwright.storybook.config.ts
@@ -2349,6 +2354,7 @@ jobs:
           pkg/storage/unified/resource/kv
           pkg/storage/unified/resourcepb
           pkg/util/sqlite
+          docs/sources/visualizations/panels-visualizations/query-transform-data/transform-data/index.md
           e2e-playwright
           playwright.config.ts
           playwright.storybook.config.ts
