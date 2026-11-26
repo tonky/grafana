@@ -19,7 +19,6 @@ function setup(props: Partial<React.ComponentProps<typeof FlameGraphMetadata>> =
     <FlameGraphMetadata
       data={container}
       totalTicks={17}
-      totalProfileTicks={17}
       onFocusPillClick={onFocusPillClick}
       onSandwichPillClick={onSandwichPillClick}
       {...props}
@@ -60,31 +59,15 @@ describe('FlameGraphMetadata', () => {
     expect(mocks.onFocusPillClick).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the sandwiched function as a percentage of the whole profile', async () => {
+  it('shows sandwich state', async () => {
     const { mocks } = setup({
       sandwichedLabel: 'some/random/func.go',
-      // View ticks are the selected function; profile ticks are the original total.
-      totalTicks: 5,
-      totalProfileTicks: 17,
     });
-    expect(screen.getByText(/5 | 5 samples (Count)/)).toBeInTheDocument();
-    expect(screen.getByText(/29.41% of total/)).toBeInTheDocument();
-    expect(screen.queryByText(/func.go/)).toBeNull();
+    expect(screen.getByText(/17 | 17 samples (Count)/)).toBeInTheDocument();
     expect(screen.queryByLabelText(/Remove focus/)).toBeNull();
-
-    await userEvent.hover(screen.getByText(/29.41% of total/));
-    expect(await screen.findByRole('tooltip')).toHaveTextContent('some/random/func.go');
+    expect(screen.getByText(/func.go/)).toBeInTheDocument();
 
     await userEvent.click(screen.getByLabelText(/Remove sandwich/));
     expect(mocks.onSandwichPillClick).toHaveBeenCalledTimes(1);
-  });
-
-  it('shows 0% of total in sandwich view when the profile total is 0', () => {
-    setup({
-      sandwichedLabel: 'func',
-      totalTicks: 0,
-      totalProfileTicks: 0,
-    });
-    expect(screen.getByText(/0% of total/)).toBeInTheDocument();
   });
 });

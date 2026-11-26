@@ -31,6 +31,7 @@ import (
 type ResourceClient interface {
 	SearchClient
 	resourcepb.ResourceStoreClient
+	resourcepb.ResourceStatsClient
 	resourcepb.BulkStoreClient
 	resourcepb.BlobStoreClient
 	resourcepb.QuotasClient
@@ -45,6 +46,7 @@ type SearchClient interface {
 // Internal implementation
 type resourceClient struct {
 	resourcepb.ResourceStoreClient
+	resourcepb.ResourceStatsClient
 	resourcepb.ResourceIndexClient
 	resourcepb.ManagedObjectIndexClient
 	resourcepb.BulkStoreClient
@@ -58,6 +60,7 @@ type resourceClient struct {
 func NewResourceClientFromConns(storageCc grpc.ClientConnInterface, indexCc grpc.ClientConnInterface) ResourceClient {
 	return &resourceClient{
 		ResourceStoreClient:      resourcepb.NewResourceStoreClient(storageCc),
+		ResourceStatsClient:      resourcepb.NewResourceStatsClient(storageCc),
 		ResourceIndexClient:      resourcepb.NewResourceIndexClient(indexCc),
 		ManagedObjectIndexClient: resourcepb.NewManagedObjectIndexClient(indexCc),
 		BulkStoreClient:          resourcepb.NewBulkStoreClient(storageCc),

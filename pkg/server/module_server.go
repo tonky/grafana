@@ -506,6 +506,7 @@ func (s *ModuleServer) initStorageServerModule() (services.Service, error) {
 		return svc.CheckHealth(ctx)
 	}),
 		resourcepb.ResourceStore_ServiceDesc.ServiceName,
+		resourcepb.ResourceStats_ServiceDesc.ServiceName,
 		resourcepb.ResourceIndex_ServiceDesc.ServiceName,
 		resourcepb.ManagedObjectIndex_ServiceDesc.ServiceName,
 		resourcepb.BlobStore_ServiceDesc.ServiceName,

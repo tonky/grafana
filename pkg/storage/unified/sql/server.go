@@ -90,6 +90,7 @@ func NewUninitializedResourceServer(opts ServerOptions) (resource.ResourceServer
 		withSearchClient,
 		withQuotaConfig,
 		withStorageMetrics,
+		withUsageStats,
 		withSeededWatches,
 		withNatsWatchMaxAge,
 	)
@@ -219,6 +220,12 @@ func withMaxPageSizeBytes(opts *ServerOptions, resourceOpts *resource.ResourceSe
 
 func withAuthorizeBeforeFetch(opts *ServerOptions, resourceOpts *resource.ResourceServerOptions) error {
 	resourceOpts.AuthorizeBeforeFetchEnabled = opts.Cfg.AuthorizeBeforeFetchEnabled
+	return nil
+}
+
+func withUsageStats(opts *ServerOptions, resourceOpts *resource.ResourceServerOptions) error {
+	unifiedStorageCfg := opts.Cfg.SectionWithEnvOverrides("unified_storage")
+	resourceOpts.UsageStatsEnabled = unifiedStorageCfg.Key("usage_stats_enabled").MustBool(false)
 	return nil
 }
 

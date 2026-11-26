@@ -270,6 +270,7 @@ func testIntegrationAppPluginSettings(t *testing.T, manifestFile string, feature
 						Name:      testAppID,
 					}})
 					require.NoError(c, err)
+					require.Nil(c, rsp.Error)
 					stored := &unstructured.Unstructured{}
 					require.NoError(c, stored.UnmarshalJSON(rsp.Value))
 					require.Equal(c, testAppID, stored.GetName())

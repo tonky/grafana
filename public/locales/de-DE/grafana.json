@@ -2047,8 +2047,7 @@
       }
     },
     "inspector-yaml-tab": {
-      "apply": "Anwenden",
-      "editor-label": ""
+      "apply": "Anwenden"
     },
     "instance-details": {
       "drawer-time-range-short": {
@@ -5763,8 +5762,7 @@
       "apply-undo-title": "",
       "overlay": {
         "hint-panel": "",
-        "hint-region": "",
-        "hint-variable": ""
+        "hint-region": ""
       },
       "region": "",
       "untitled-panel": "",
@@ -5946,9 +5944,6 @@
       "render-label": {
         "tooltip-remove-property": "Eigenschaft entfernen"
       }
-    },
-    "edit": {
-      "mobile-not-available": ""
     },
     "edit-actions": {
       "add": "{{typeName}} hinzufügen",
@@ -6446,9 +6441,6 @@
           "hide-header": "Kopfzeile ausblenden",
           "title": "Titel"
         },
-        "section-annotations": {
-          "title": ""
-        },
         "section-filters": {
           "title": "Filter"
         },
@@ -6530,10 +6522,11 @@
         "data-source": "Datenquelle",
         "display": "Anmerkungssteuerung anzeigen in",
         "display-options": {
+          "above-dashboard": "Über dem Dashboard",
           "controls-menu": "Steuerungsmenü",
-          "controls-menu-description": "",
+          "controls-menu-description": "Kann aufgerufen werden, wenn das Steuerungsmenü geöffnet ist",
           "hidden": "Ausgeblendet",
-          "hidden-description": ""
+          "hidden-description": "Blendet den Schalter zum Ein- oder Ausschalten dieser Anmerkung aus"
         },
         "enabled": "Aktiviert",
         "enabled-description": "Wenn dies aktiviert ist, wird bei jeder Aktualisierung des Dashboards eine Annotationsabfrage ausgegeben",
@@ -6636,9 +6629,7 @@
         "tab": "Tab",
         "tabs": "Tabs",
         "variable": "{{type}} Variable",
-        "variable-set": "Variablen",
-        "selected-panels_one": "",
-        "selected-panels_other": ""
+        "variable-set": "Variablen"
       },
       "export": {
         "title": "Exportieren"
@@ -6817,9 +6808,6 @@
             "description": "Wiederholen Sie diese Registerkarte für jeden Wert in der ausgewählten Variable.",
             "title": "Nach Variable wiederholen"
           }
-        },
-        "section-annotations": {
-          "title": ""
         },
         "section-filters": {
           "title": "Filter"
@@ -7596,7 +7584,6 @@
       "error-invalid-json": "Ungültiges JSON",
       "error-invalid-layout": "Layout-JSON hat die Validierung nicht bestanden. Bitte überprüfen Sie die JSON und versuchen Sie es erneut.",
       "error-invalid-v2-panel": "Panel-JSON hat die Validierung nicht bestanden. Bitte überprüfen Sie die JSON-Datei und versuchen Sie es erneut.",
-      "mobile-edit-unavailable": "",
       "validation-error": "Validierungsfehler"
     },
     "interval-variable-form": {
@@ -7773,9 +7760,7 @@
       "title-delete-all-transformations": "Alle Transformationen löschen?"
     },
     "panel-edit-actions": {
-      "edit-visualization": "Visualisierung bearbeiten",
-      "panels-selected_one": "",
-      "panels-selected_other": ""
+      "edit-visualization": "Visualisierung bearbeiten"
     },
     "panel-edit-controls": {
       "table-view-aria-label-toggletableview": "Tabellenansicht umschalten",
@@ -14031,12 +14016,6 @@
     "viz-type-picker": {
       "could-anything-matching-query": "Es konnte nichts gefunden werden, was Ihrer Abfrage entspricht"
     }
-  },
-  "panel-adhoc-changes": {
-    "remove-changes": "",
-    "save-to-dashboard": "",
-    "tooltip": "",
-    "undo-title": ""
   },
   "panel-data-pane": {
     "try-new-editor": {

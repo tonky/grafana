@@ -2047,8 +2047,7 @@
       }
     },
     "inspector-yaml-tab": {
-      "apply": "Aplicar",
-      "editor-label": ""
+      "apply": "Aplicar"
     },
     "instance-details": {
       "drawer-time-range-short": {
@@ -5763,8 +5762,7 @@
       "apply-undo-title": "",
       "overlay": {
         "hint-panel": "",
-        "hint-region": "",
-        "hint-variable": ""
+        "hint-region": ""
       },
       "region": "",
       "untitled-panel": "",
@@ -5946,9 +5944,6 @@
       "render-label": {
         "tooltip-remove-property": "Remover a propriedade"
       }
-    },
-    "edit": {
-      "mobile-not-available": ""
     },
     "edit-actions": {
       "add": "Adicionar {{typeName}}",
@@ -6446,9 +6441,6 @@
           "hide-header": "Ocultar cabeçalho da linha",
           "title": "Título"
         },
-        "section-annotations": {
-          "title": ""
-        },
         "section-filters": {
           "title": "Filtros"
         },
@@ -6530,10 +6522,11 @@
         "data-source": "Origem dos dados",
         "display": "Mostrar controlos de anotação em",
         "display-options": {
+          "above-dashboard": "Acima do painel de controlo",
           "controls-menu": "Menu de controlos",
-          "controls-menu-description": "",
+          "controls-menu-description": "Pode ser acedido quando o menu de controlos está aberto",
           "hidden": "Oculto",
-          "hidden-description": ""
+          "hidden-description": "Oculta o botão para ativar ou desativar esta anotação"
         },
         "enabled": "Ativado",
         "enabled-description": "Quando esta opção está ativada, a consulta de anotação é emitida a cada atualização do painel de controlo",
@@ -6636,9 +6629,7 @@
         "tab": "Separador",
         "tabs": "Separadores",
         "variable": "Variável {{type}}",
-        "variable-set": "Variáveis",
-        "selected-panels_one": "",
-        "selected-panels_other": ""
+        "variable-set": "Variáveis"
       },
       "export": {
         "title": "Exportar"
@@ -6817,9 +6808,6 @@
             "description": "Repetir este separador para cada valor na variável selecionada.",
             "title": "Repetir por variável"
           }
-        },
-        "section-annotations": {
-          "title": ""
         },
         "section-filters": {
           "title": "Filtros"
@@ -7596,7 +7584,6 @@
       "error-invalid-json": "JSON inválido",
       "error-invalid-layout": "O layout JSON não passou na validação. Verifique o JSON e tente novamente.",
       "error-invalid-v2-panel": "O painel JSON não passou na validação. Verifique o JSON e tente novamente.",
-      "mobile-edit-unavailable": "",
       "validation-error": "Erro de validação"
     },
     "interval-variable-form": {
@@ -7773,9 +7760,7 @@
       "title-delete-all-transformations": "Eliminar todas as transformações?"
     },
     "panel-edit-actions": {
-      "edit-visualization": "Editar visualização",
-      "panels-selected_one": "",
-      "panels-selected_other": ""
+      "edit-visualization": "Editar visualização"
     },
     "panel-edit-controls": {
       "table-view-aria-label-toggletableview": "Alternar vista de tabela",
@@ -14031,12 +14016,6 @@
     "viz-type-picker": {
       "could-anything-matching-query": "Não foi possível encontrar nada que corresponda à sua consulta"
     }
-  },
-  "panel-adhoc-changes": {
-    "remove-changes": "",
-    "save-to-dashboard": "",
-    "tooltip": "",
-    "undo-title": ""
   },
   "panel-data-pane": {
     "try-new-editor": {

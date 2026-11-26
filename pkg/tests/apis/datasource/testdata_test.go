@@ -106,6 +106,24 @@ func TestIntegrationTestDatasource(t *testing.T) {
 		require.ElementsMatch(t, []string{"aaa", "bbb"}, keys)
 	})
 
+	// Wait for the async mode-3 dual-write CREATE to land in unified storage before issuing
+	// UPDATE so background UPDATE cannot race CREATE with AlreadyExists on slower runners.
+	{
+		storage := helper.GetEnv().ResourceClient
+		svcCtx, _ := identity.WithServiceIdentity(ctx, helper.Org1.OrgID)
+		key := &resourcepb.ResourceKey{
+			Namespace: "default",
+			Group:     datasourceV0alpha1.GROUP,
+			Resource:  "datasources",
+			Name:      "test",
+		}
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			rsp, err := storage.Read(svcCtx, &resourcepb.ReadRequest{Key: key})
+			require.NoError(c, err)
+			require.Nil(c, rsp.Error)
+		}, 5*time.Second, 50*time.Millisecond)
+	}
+
 	t.Run("update", func(t *testing.T) {
 		out, err := client.Update(ctx, &unstructured.Unstructured{
 			Object: map[string]any{
@@ -168,6 +186,7 @@ func TestIntegrationTestDatasource(t *testing.T) {
 		require.EventuallyWithT(t, func(c *assert.CollectT) {
 			rsp, err := storage.Read(svcCtx, &resourcepb.ReadRequest{Key: key})
 			require.NoError(c, err)
+			require.Nil(c, rsp.Error)
 			require.NoError(c, stored.UnmarshalJSON(rsp.Value))
 			url, _, _ := unstructured.NestedString(stored.Object, "spec", "url")
 			require.Equal(c, "http://fake.url", url, "includes the update")
@@ -186,9 +205,10 @@ func TestIntegrationTestDatasource(t *testing.T) {
 			Resource:  key.Resource,
 			Name:      key.Name,
 		}
-		_, err = storage.Read(svcCtx, &resourcepb.ReadRequest{Key: pluginKey})
-		require.Error(t, err)
-		errorResult := resource.AsErrorResult(err)
+		rsp, err := storage.Read(svcCtx, &resourcepb.ReadRequest{Key: pluginKey})
+		readErr := resource.ErrorFromResponse(rsp.GetError(), err)
+		require.Error(t, readErr)
+		errorResult := resource.AsErrorResult(readErr)
 		require.NotNil(t, errorResult)
 		require.Equal(t, int32(http.StatusNotFound), errorResult.Code)
 
@@ -208,6 +228,7 @@ func TestIntegrationTestDatasource(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
+		require.Nil(t, list.Error)
 		require.Len(t, list.Items, 1)
 	})
 
