@@ -1,6 +1,7 @@
 package kinds
 
 import (
+	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -76,7 +77,14 @@ func TestPluginSchema(t *testing.T) {
 	err = builder.SetRoutes(Routes())
 	require.NoError(t, err)
 
-	builder.UpdateProviderFiles(t, "v0alpha1", filepath.Join(pluginDirectory, "schema"))
+	tmpSchemaDir := t.TempDir()
+	require.NoError(t, os.CopyFS(tmpSchemaDir, os.DirFS(filepath.Join(pluginDirectory, "schema"))))
+	builder.UpdateProviderFiles(t, "v0alpha1", tmpSchemaDir)
+	orig, err := os.ReadFile(filepath.Join(pluginDirectory, "schema", "v0alpha1.json"))
+	require.NoError(t, err)
+	updated, err := os.ReadFile(filepath.Join(tmpSchemaDir, "v0alpha1.json"))
+	require.NoError(t, err)
+	require.JSONEq(t, string(orig), string(updated), "v0alpha1.json schema is out of date")
 }
 
 func Settings() *pluginschema.Settings {

@@ -49,6 +49,7 @@ func TestGetQuota(t *testing.T) {
 	t.Run("will return quotas response when params are valid", func(t *testing.T) {
 		clientMock := newMockQuotasClient(t)
 		clientMock.On("GetQuotaUsage", mock.Anything, mock.Anything, mock.Anything).Return(&resourcepb.QuotaUsageResponse{
+			Error: nil,
 			Usage: 1,
 			Limit: 2,
 		}, nil)

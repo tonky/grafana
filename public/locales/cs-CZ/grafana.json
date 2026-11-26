@@ -2075,8 +2075,7 @@
       }
     },
     "inspector-yaml-tab": {
-      "apply": "Použít",
-      "editor-label": ""
+      "apply": "Použít"
     },
     "instance-details": {
       "drawer-time-range-short": {
@@ -5863,8 +5862,7 @@
       "apply-undo-title": "",
       "overlay": {
         "hint-panel": "",
-        "hint-region": "",
-        "hint-variable": ""
+        "hint-region": ""
       },
       "region": "",
       "untitled-panel": "",
@@ -6046,9 +6044,6 @@
       "render-label": {
         "tooltip-remove-property": "Odebrat vlastnost"
       }
-    },
-    "edit": {
-      "mobile-not-available": ""
     },
     "edit-actions": {
       "add": "Přidat {{typeName}}",
@@ -6548,9 +6543,6 @@
           "hide-header": "Skrýt záhlaví řádku",
           "title": "Název"
         },
-        "section-annotations": {
-          "title": ""
-        },
         "section-filters": {
           "title": "Filtry"
         },
@@ -6632,10 +6624,11 @@
         "data-source": "Zdroj dat",
         "display": "Zobrazit ovládací prvky vysvětlivek v",
         "display-options": {
+          "above-dashboard": "Nad nástěnkou",
           "controls-menu": "Nabídka ovládacích prvků",
-          "controls-menu-description": "",
+          "controls-menu-description": "Přístup je možný, když je otevřena nabídka ovládacích prvků",
           "hidden": "Skryté",
-          "hidden-description": ""
+          "hidden-description": "Skryje přepínač pro zapnutí nebo vypnutí této vysvětlivky"
         },
         "enabled": "Povoleno",
         "enabled-description": "Je-li povoleno, při každém obnovení nástěnky bude aktivován dotaz na vysvětlivky",
@@ -6738,11 +6731,7 @@
         "tab": "Karta",
         "tabs": "Karty",
         "variable": "{{type}} proměnná",
-        "variable-set": "Proměnné",
-        "selected-panels_one": "",
-        "selected-panels_few": "",
-        "selected-panels_many": "",
-        "selected-panels_other": ""
+        "variable-set": "Proměnné"
       },
       "export": {
         "title": "Exportovat"
@@ -6921,9 +6910,6 @@
             "description": "Opakovat tuto záložku pro každou hodnotu ve vybrané proměnné.",
             "title": "Opakovat podle proměnné"
           }
-        },
-        "section-annotations": {
-          "title": ""
         },
         "section-filters": {
           "title": "Filtry"
@@ -7704,7 +7690,6 @@
       "error-invalid-json": "Neplatný JSON",
       "error-invalid-layout": "Rozvržení JSON neprošlo ověřením. Zkontrolujte JSON a zkuste to znovu.",
       "error-invalid-v2-panel": "Panel JSON neprošel ověřením. Zkontrolujte JSON a zkuste to znovu.",
-      "mobile-edit-unavailable": "",
       "validation-error": "Chyba ověření"
     },
     "interval-variable-form": {
@@ -7885,11 +7870,7 @@
       "title-delete-all-transformations": "Odstranit všechny transformace?"
     },
     "panel-edit-actions": {
-      "edit-visualization": "Upravit vizualizaci",
-      "panels-selected_one": "",
-      "panels-selected_few": "",
-      "panels-selected_many": "",
-      "panels-selected_other": ""
+      "edit-visualization": "Upravit vizualizaci"
     },
     "panel-edit-controls": {
       "table-view-aria-label-toggletableview": "Přepnout zobrazení tabulky",
@@ -14255,12 +14236,6 @@
     "viz-type-picker": {
       "could-anything-matching-query": "Nenašly jsme žádnou shodu s vaším dotazem"
     }
-  },
-  "panel-adhoc-changes": {
-    "remove-changes": "",
-    "save-to-dashboard": "",
-    "tooltip": "",
-    "undo-title": ""
   },
   "panel-data-pane": {
     "try-new-editor": {

@@ -1,6 +1,5 @@
 import { screen, waitFor } from '@testing-library/react';
 
-import { reportInteraction } from '@grafana/runtime';
 import { type DataQuery } from '@grafana/schema';
 
 import { dashboardDsSettingsMock, ds1SettingsMock, renderWithQueryEditorProvider } from '../testUtils';
@@ -13,32 +12,11 @@ jest.mock('@grafana/runtime', () => ({
   getDataSourceSrv: () => ({
     getInstanceSettings: () => ds1SettingsMock,
   }),
-  reportInteraction: jest.fn(),
 }));
-
-const mockQueryLibrary = { queryLibraryEnabled: false, openDrawer: jest.fn() };
-
-jest.mock('app/features/explore/QueryLibrary/QueryLibraryContext', () => ({
-  ...jest.requireActual('app/features/explore/QueryLibrary/QueryLibraryContext'),
-  useQueryLibraryContext: () => mockQueryLibrary,
-}));
-
-jest.mock('app/features/explore/QueryLibrary/utils/identity', () => ({
-  hasSavedQueryReadPermissions: () => true,
-}));
-
-const mockReportInteraction = jest.mocked(reportInteraction);
-
-const organizeTransformation: Transformation = {
-  transformId: 'organize',
-  registryItem: undefined,
-  transformConfig: { id: 'organize', options: {} },
-};
 
 describe('QueryEditorSidebar', () => {
-  beforeEach(() => {
+  afterAll(() => {
     jest.clearAllMocks();
-    mockQueryLibrary.queryLibraryEnabled = false;
   });
 
   it('should always render transformations section even when no transformations exist', async () => {
@@ -98,7 +76,7 @@ describe('QueryEditorSidebar', () => {
     const queries: DataQuery[] = [{ refId: 'A', datasource: { type: 'test', uid: 'test' } }];
 
     const transformations: Transformation[] = [
-      organizeTransformation,
+      { transformId: 'organize', registryItem: undefined, transformConfig: { id: 'organize', options: {} } },
       { transformId: 'reduce', registryItem: undefined, transformConfig: { id: 'reduce', options: {} } },
     ];
 
@@ -127,9 +105,13 @@ describe('QueryEditorSidebar', () => {
       { refId: 'B', datasource: { type: 'test', uid: 'test' } },
     ];
 
+    const transformations: Transformation[] = [
+      { transformId: 'organize', registryItem: undefined, transformConfig: { id: 'organize', options: {} } },
+    ];
+
     renderWithQueryEditorProvider(<QueriesAndTransformationsView />, {
       queries,
-      transformations: [organizeTransformation],
+      transformations,
       selectedQuery: queries[0],
     });
 
@@ -141,135 +123,31 @@ describe('QueryEditorSidebar', () => {
     expect(screen.getByRole('button', { name: /select card organize/i })).toBeInTheDocument();
   });
 
-  describe('Queries & Expressions header split button', () => {
-    it('adds a query at the end and selects it in one click', async () => {
-      const queries: DataQuery[] = [{ refId: 'A', datasource: { type: 'test', uid: 'test' } }];
-      const addQuery = jest.fn().mockReturnValue('B');
-      const setSelectedQuery = jest.fn();
-
-      const { user } = renderWithQueryEditorProvider(<QueriesAndTransformationsView />, {
-        queries,
-        selectedQuery: queries[0],
-        actionsOverrides: { addQuery },
-        uiStateOverrides: { setSelectedQuery },
-      });
-
-      await user.click(screen.getByRole('button', { name: 'Add query' }));
-
-      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-      expect(addQuery).toHaveBeenCalledWith(undefined, undefined);
-      expect(setSelectedQuery).toHaveBeenCalledWith({ refId: 'B', hide: false });
-      expect(mockReportInteraction).toHaveBeenCalledWith(
-        'grafana_panel_edit_next_interaction',
-        { action: 'add_query', source: 'new_query', card_source: 'section_header' },
-        undefined
-      );
-    });
-
-    it('opens a menu with the query options followed by Add transformation', async () => {
-      const { user } = renderWithQueryEditorProvider(<QueriesAndTransformationsView />);
-
-      await user.click(screen.getByRole('button', { name: 'More add options' }));
-
-      const itemNames = screen.getAllByRole('menuitem').map((item) => item.textContent);
-      expect(itemNames).toEqual(['Add query', 'Add expression', 'Add transformation']);
-    });
-
-    it('should expand collapsed queries section when adding an expression', async () => {
-      const queries: DataQuery[] = [{ refId: 'A', datasource: { type: 'test', uid: 'test' } }];
-
-      const { user } = renderWithQueryEditorProvider(<QueriesAndTransformationsView />, {
-        queries,
-        selectedQuery: queries[0],
-      });
-
-      await user.click(screen.getByRole('button', { name: /queries & expressions/i }));
-      expect(screen.queryByRole('button', { name: /select card A/i })).not.toBeInTheDocument();
-
-      await user.click(screen.getByRole('button', { name: 'More add options' }));
-      await user.click(screen.getByRole('menuitem', { name: /add expression/i }));
-
-      expect(screen.getByRole('button', { name: /select card A/i })).toBeInTheDocument();
-    });
-
-    it('should expand collapsed queries section when opening the saved query picker', async () => {
-      mockQueryLibrary.queryLibraryEnabled = true;
-      const queries: DataQuery[] = [{ refId: 'A', datasource: { type: 'test', uid: 'test' } }];
-
-      const { user } = renderWithQueryEditorProvider(<QueriesAndTransformationsView />, {
-        queries,
-        selectedQuery: queries[0],
-      });
-
-      await user.click(screen.getByRole('button', { name: /queries & expressions/i }));
-      expect(screen.queryByRole('button', { name: /select card A/i })).not.toBeInTheDocument();
-
-      await user.click(screen.getByRole('button', { name: 'More add options' }));
-      await user.click(screen.getByRole('menuitem', { name: 'Add saved query' }));
-
-      expect(mockQueryLibrary.openDrawer).toHaveBeenCalled();
-      expect(screen.getByRole('button', { name: /select card A/i })).toBeInTheDocument();
-    });
-
-    it.each([
-      { state: 'collapsed', collapse: true },
-      { state: 'open', collapse: false },
-    ])('starts the transformation picker from the menu with Transformations $state', async ({ collapse }) => {
-      const setPendingTransformation = jest.fn();
-
-      const { user } = renderWithQueryEditorProvider(<QueriesAndTransformationsView />, {
-        transformations: [organizeTransformation],
-        uiStateOverrides: { setPendingTransformation },
-      });
-
-      if (collapse) {
-        await user.click(screen.getByRole('button', { name: /^transformations$/i }));
-        expect(screen.queryByRole('button', { name: /select card organize/i })).not.toBeInTheDocument();
-      }
-
-      await user.click(screen.getByRole('button', { name: 'More add options' }));
-      await user.click(screen.getByRole('menuitem', { name: 'Add transformation' }));
-
-      expect(screen.getByRole('button', { name: /select card organize/i })).toBeInTheDocument();
-      expect(setPendingTransformation).toHaveBeenCalledWith({ insertAfter: undefined });
-      expect(mockReportInteraction).toHaveBeenCalledWith(
-        'grafana_panel_edit_next_interaction',
-        { action: 'add_transformation_initiated', source: 'section_header' },
-        undefined
-      );
-    });
-
-    it('should disable "Add expression" when panel datasource is dashboard datasource', async () => {
-      const queries: DataQuery[] = [{ refId: 'A', datasource: { type: 'dashboard', uid: '-- Dashboard --' } }];
-
-      const { user } = renderWithQueryEditorProvider(<QueriesAndTransformationsView />, {
-        queries,
-        selectedQuery: queries[0],
-        dsState: { dsSettings: dashboardDsSettingsMock },
-      });
-
-      await user.click(screen.getByRole('button', { name: 'More add options' }));
-
-      expect(screen.getByRole('menuitem', { name: /add expression/i })).toBeDisabled();
-    });
-  });
-
-  it('starts the transformation picker from the Transformations header without a menu', async () => {
-    const setPendingTransformation = jest.fn();
+  it('should expand collapsed queries section when adding an expression', async () => {
+    const queries: DataQuery[] = [{ refId: 'A', datasource: { type: 'test', uid: 'test' } }];
 
     const { user } = renderWithQueryEditorProvider(<QueriesAndTransformationsView />, {
-      uiStateOverrides: { setPendingTransformation },
+      queries,
+      selectedQuery: queries[0],
     });
 
-    await user.click(screen.getByRole('button', { name: 'Add transformation' }));
+    // Verify query card is visible
+    expect(screen.getByRole('button', { name: /select card A/i })).toBeInTheDocument();
 
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-    expect(setPendingTransformation).toHaveBeenCalledWith({ insertAfter: undefined });
-    expect(mockReportInteraction).toHaveBeenCalledWith(
-      'grafana_panel_edit_next_interaction',
-      { action: 'add_transformation_initiated', source: 'section_header' },
-      undefined
-    );
+    // Collapse the "Queries & Expressions" section
+    await user.click(screen.getByRole('button', { name: /queries & expressions/i }));
+
+    // Query card should be unmounted
+    expect(screen.queryByRole('button', { name: /select card A/i })).not.toBeInTheDocument();
+
+    // Click the header "+" button to open the add menu
+    await user.click(screen.getByRole('button', { name: /add query or expression/i }));
+
+    // Click "Add expression" from the dropdown
+    await user.click(screen.getByRole('menuitem', { name: /add expression/i }));
+
+    // Section should now be expanded — query card is visible again
+    expect(screen.getByRole('button', { name: /select card A/i })).toBeInTheDocument();
   });
 
   it('should render "Add below" buttons for both query/expression and transformation cards', () => {
@@ -278,9 +156,13 @@ describe('QueryEditorSidebar', () => {
       { refId: 'B', datasource: { type: 'test', uid: 'test' } },
     ];
 
+    const transformations: Transformation[] = [
+      { transformId: 'organize', registryItem: undefined, transformConfig: { id: 'organize', options: {} } },
+    ];
+
     renderWithQueryEditorProvider(<QueriesAndTransformationsView />, {
       queries,
-      transformations: [organizeTransformation],
+      transformations,
       selectedQuery: queries[0],
     });
 
@@ -290,5 +172,19 @@ describe('QueryEditorSidebar', () => {
 
     // Transformation cards should also have an add button
     expect(screen.getByRole('button', { name: /add transformation below organize/i })).toBeInTheDocument();
+  });
+
+  it('should disable "Add expression" when panel datasource is dashboard datasource', async () => {
+    const queries: DataQuery[] = [{ refId: 'A', datasource: { type: 'dashboard', uid: '-- Dashboard --' } }];
+
+    const { user } = renderWithQueryEditorProvider(<QueriesAndTransformationsView />, {
+      queries,
+      selectedQuery: queries[0],
+      dsState: { dsSettings: dashboardDsSettingsMock },
+    });
+
+    await user.click(screen.getByRole('button', { name: /add query or expression/i }));
+
+    expect(screen.getByRole('menuitem', { name: /add expression/i })).toBeDisabled();
   });
 });

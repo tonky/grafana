@@ -2047,8 +2047,7 @@
       }
     },
     "inspector-yaml-tab": {
-      "apply": "Toepassen",
-      "editor-label": ""
+      "apply": "Toepassen"
     },
     "instance-details": {
       "drawer-time-range-short": {
@@ -5763,8 +5762,7 @@
       "apply-undo-title": "",
       "overlay": {
         "hint-panel": "",
-        "hint-region": "",
-        "hint-variable": ""
+        "hint-region": ""
       },
       "region": "",
       "untitled-panel": "",
@@ -5946,9 +5944,6 @@
       "render-label": {
         "tooltip-remove-property": "Eigenschap verwijderen"
       }
-    },
-    "edit": {
-      "mobile-not-available": ""
     },
     "edit-actions": {
       "add": "{{typeName}} toevoegen",
@@ -6446,9 +6441,6 @@
           "hide-header": "Rij-koptekst verbergen",
           "title": "Titel"
         },
-        "section-annotations": {
-          "title": ""
-        },
         "section-filters": {
           "title": "Filters"
         },
@@ -6530,10 +6522,11 @@
         "data-source": "Gegevensbron",
         "display": "Annotatiebesturingselementen weergeven in",
         "display-options": {
+          "above-dashboard": "Boven dashboard",
           "controls-menu": "Besturingsmenu",
-          "controls-menu-description": "",
+          "controls-menu-description": "Kan worden geopend wanneer het besturingsmenu open is",
           "hidden": "Verborgen",
-          "hidden-description": ""
+          "hidden-description": "Verbergt de schakelaar voor het in- of uitschakelen van deze annotatie"
         },
         "enabled": "Ingeschakeld",
         "enabled-description": "Wanneer ingeschakeld, wordt de annotatiequery elke dashboardvernieuwing uitgegeven",
@@ -6636,9 +6629,7 @@
         "tab": "Tabblad",
         "tabs": "Tabbladen",
         "variable": "{{type}} variabele",
-        "variable-set": "Variabelen",
-        "selected-panels_one": "",
-        "selected-panels_other": ""
+        "variable-set": "Variabelen"
       },
       "export": {
         "title": "Exporteren"
@@ -6817,9 +6808,6 @@
             "description": "Herhaal dit tabblad voor elke waarde in de geselecteerde variabele.",
             "title": "Herhalen per variabele"
           }
-        },
-        "section-annotations": {
-          "title": ""
         },
         "section-filters": {
           "title": "Filters"
@@ -7596,7 +7584,6 @@
       "error-invalid-json": "Ongeldige JSON",
       "error-invalid-layout": "De JSON van de lay-out heeft de validatie niet doorstaan. Controleer de JSON en probeer het opnieuw.",
       "error-invalid-v2-panel": "De JSON van het paneel heeft de validatie niet doorstaan. Controleer de JSON en probeer het opnieuw.",
-      "mobile-edit-unavailable": "",
       "validation-error": "Validatiefout"
     },
     "interval-variable-form": {
@@ -7773,9 +7760,7 @@
       "title-delete-all-transformations": "Alle transformaties verwijderen?"
     },
     "panel-edit-actions": {
-      "edit-visualization": "Visualisatie bewerken",
-      "panels-selected_one": "",
-      "panels-selected_other": ""
+      "edit-visualization": "Visualisatie bewerken"
     },
     "panel-edit-controls": {
       "table-view-aria-label-toggletableview": "Tabelweergave in-/uitschakelen",
@@ -14031,12 +14016,6 @@
     "viz-type-picker": {
       "could-anything-matching-query": "Kon niets vinden dat overeenkomt met je query"
     }
-  },
-  "panel-adhoc-changes": {
-    "remove-changes": "",
-    "save-to-dashboard": "",
-    "tooltip": "",
-    "undo-title": ""
   },
   "panel-data-pane": {
     "try-new-editor": {

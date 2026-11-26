@@ -153,7 +153,8 @@ function getStyles(theme: GrafanaTheme2) {
       gap: '2px',
       height: '20px',
       lineHeight: '1',
-      width: 'max-content',
+      overflow: 'hidden',
+      minWidth: 0,
     }),
     treeConnector: css({
       color: theme.colors.text.secondary,
@@ -168,18 +169,18 @@ function getStyles(theme: GrafanaTheme2) {
     functionNameWrapper: css({
       display: 'inline-flex',
       alignItems: 'center',
-      flexShrink: 0,
+      overflow: 'hidden',
+      minWidth: 0,
     }),
     functionButton: css({
       padding: 0,
       fontSize: theme.typography.fontSize,
       textAlign: 'left',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
-      flexShrink: 0,
-      // Button paints the label in an inner span that clips overflow. Let the name define the width.
-      '& > span': {
-        overflow: 'visible',
-      },
+      minWidth: 0,
+      flexShrink: 1,
     }),
     nodeBadge: css({
       marginLeft: theme.spacing(0.5),

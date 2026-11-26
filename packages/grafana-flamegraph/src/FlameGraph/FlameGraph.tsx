@@ -203,7 +203,6 @@ const FlameGraph = ({
           focusedItem={focusedItemData}
           sandwichedLabel={sandwichItem}
           totalTicks={totalViewTicks}
-          totalProfileTicks={totalProfileTicks}
           onFocusPillClick={onFocusPillClick}
           onSandwichPillClick={onSandwichPillClick}
         />

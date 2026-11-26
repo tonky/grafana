@@ -3,41 +3,24 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { type GrafanaTheme2, type IconName } from '@grafana/data';
 import { t } from '@grafana/i18n';
-import { IconButton, Tooltip, useStyles2 } from '@grafana/ui';
+import { Button, IconButton, Tooltip, useStyles2 } from '@grafana/ui';
 import { appEvents } from 'app/core/app_events';
 import { ShowConfirmModalEvent } from 'app/types/events';
 
 import { useEditActionsPopover } from './EditActionsPopover';
 
-export function EditActionButton({ onClick, tooltip }: { onClick: () => void; tooltip: string }) {
+export function SettingsActionButton({ onClick }: { onClick: () => void }) {
   const styles = useStyles2(getActionStyles);
   return (
-    <IconButton
-      name="pen"
+    <Button
+      fill="text"
       variant="secondary"
-      size="md"
-      className={styles.action}
+      size="sm"
+      className={cx(styles.action, styles.textAction)}
       onClick={onClick}
-      aria-label={tooltip}
-      tooltip={tooltip}
-      tooltipPlacement="top"
-    />
-  );
-}
-
-export function SettingsActionButton({ onClick, tooltip }: { onClick: () => void; tooltip: string }) {
-  const styles = useStyles2(getActionStyles);
-  return (
-    <IconButton
-      name="cog"
-      variant="secondary"
-      size="md"
-      className={styles.action}
-      onClick={onClick}
-      aria-label={tooltip}
-      tooltip={tooltip}
-      tooltipPlacement="top"
-    />
+    >
+      {t('dashboard-scene.control-edit-actions.settings', 'Settings')}
+    </Button>
   );
 }
 
@@ -109,7 +92,6 @@ export function DuplicateActionButton({
       size="md"
       className={styles.action}
       onClick={onClick}
-      aria-label={tooltip}
       tooltip={tooltip}
       tooltipPlacement="top"
       disabled={disabled}
@@ -159,7 +141,6 @@ export function DeleteActionButton({
       size="md"
       className={cx(styles.action, styles.deleteAction)}
       onClick={onClickInternal}
-      aria-label={tooltip}
       tooltip={tooltip}
       tooltipPlacement="top"
       disabled={disabled}

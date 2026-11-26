@@ -1,4 +1,4 @@
-import { Text } from '@grafana/ui';
+import { Text, Tooltip } from '@grafana/ui';
 
 interface RuleDescriptionProps {
   lastError?: string;
@@ -10,16 +10,20 @@ interface RuleDescriptionProps {
 export function RuleDescription({ lastError, summary }: RuleDescriptionProps) {
   if (lastError) {
     return (
-      <Text variant="bodySmall" color="error" weight="light" truncate element="p">
-        {lastError}
-      </Text>
+      <Tooltip content={lastError} placement="top">
+        <Text variant="bodySmall" color="error" weight="light" truncate element="p" aria-label={lastError}>
+          {lastError}
+        </Text>
+      </Tooltip>
     );
   }
   if (summary) {
     return (
-      <Text variant="bodySmall" color="secondary" truncate element="p">
-        {summary}
-      </Text>
+      <Tooltip content={summary} placement="top">
+        <Text variant="bodySmall" color="secondary" truncate element="p" aria-label={summary}>
+          {summary}
+        </Text>
+      </Tooltip>
     );
   }
   return null;
