@@ -214,7 +214,7 @@ func TestIntegrationProvisioning_FullSync_OrphanCleanupOnSubsequentSync(t *testi
 	provCtx, _, err := identity.WithProvisioningIdentity(t.Context(), "default")
 	require.NoError(t, err)
 
-	_, err = helper.GetEnv().ResourceClient.Create(provCtx, &resourcepb.CreateRequest{
+	rsp, err := helper.GetEnv().ResourceClient.Create(provCtx, &resourcepb.CreateRequest{
 		Key: &resourcepb.ResourceKey{
 			Namespace: "default",
 			Group:     "dashboard.grafana.app",
@@ -224,6 +224,7 @@ func TestIntegrationProvisioning_FullSync_OrphanCleanupOnSubsequentSync(t *testi
 		Value: orphanBytes,
 	})
 	require.NoError(t, err, "gRPC create should succeed")
+	require.Nil(t, rsp.GetError(), "resource create should not return error: %v", rsp.GetError())
 
 	// Confirm two dashboards exist before cleanup.
 	helper.RequireRepoDashboardCount(t, repoName, 2)

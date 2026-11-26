@@ -37,16 +37,12 @@ const FilterPopupEditor = memo((props: FilterPopupProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const pointerStartedInside = useRef(false);
 
-  const closeAndRestoreFocus = () => {
-    onClose();
-    buttonElement?.focus();
-  };
-
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape' && !event.defaultPrevented) {
       event.preventDefault();
       event.stopPropagation();
-      closeAndRestoreFocus();
+      onClose();
+      buttonElement?.focus();
     }
   };
 
@@ -80,14 +76,19 @@ const FilterPopupEditor = memo((props: FilterPopupProps) => {
       rows,
       range,
       timeZone,
-      onCancel: closeAndRestoreFocus,
+      onCancel: () => {
+        onClose();
+        buttonElement?.focus();
+      },
       onClear: () => {
         onClear();
-        closeAndRestoreFocus();
+        onClose();
+        buttonElement?.focus();
       },
       onApply: (next: RangeSelection) => {
         onApplyRange?.(next);
-        closeAndRestoreFocus();
+        onClose();
+        buttonElement?.focus();
       },
     };
 
@@ -112,7 +113,6 @@ const FilterPopupEditor = memo((props: FilterPopupProps) => {
       {...props}
       filterValue={filterValue ?? (range ? [] : undefined)}
       containerRef={containerRef}
-      onClose={closeAndRestoreFocus}
       onKeyDown={handleKeyDown}
     />
   );

@@ -5,6 +5,7 @@ import { t } from '@grafana/i18n';
 import { PENDING_CARD_ID, QueryEditorType } from '../../constants';
 import { usePanelContext, useQueryEditorUIContext, useQueryRunnerContext } from '../QueryEditorContext';
 
+import { AddCardButton } from './AddCardButton';
 import { GhostSidebarCard } from './Cards/GhostSidebarCard';
 import { QueryCard } from './Cards/QueryCard';
 import { TransformationCard } from './Cards/TransformationCard';
@@ -12,9 +13,12 @@ import { CollapsableSection } from './CollapsableSection';
 import { DraggableList } from './DraggableList/DraggableList';
 import { useSidebarDragAndDrop } from './DraggableList/useSidebarDragAndDrop';
 import { SectionEmptyState } from './SectionEmptyState';
-import { QueriesHeaderAddButton, TransformationsHeaderAddButton } from './SectionHeaderAddButton';
 
-export function QueriesAndTransformationsView() {
+interface QueriesAndTransformationsViewProps {
+  showButtonLabels?: boolean;
+}
+
+export function QueriesAndTransformationsView({ showButtonLabels = false }: QueriesAndTransformationsViewProps) {
   const { queries } = useQueryRunnerContext();
   const { transformations } = usePanelContext();
   const { pendingExpression, pendingSavedQuery, pendingTransformation, multiSelectMode } = useQueryEditorUIContext();
@@ -45,7 +49,9 @@ export function QueriesAndTransformationsView() {
         label={t('query-editor-next.sidebar.queries-expressions', 'Queries & Expressions')}
         isOpen={queriesOpen}
         onToggle={setQueriesOpen}
-        headerAction={<QueriesHeaderAddButton onAddQuery={expandQueries} onAddTransformation={expandTransformations} />}
+        headerAction={
+          <AddCardButton variant="query" alwaysVisible showLabel={showButtonLabels} onAdd={expandQueries} />
+        }
       >
         {queries.length > 0 && (
           <DraggableList
@@ -67,7 +73,14 @@ export function QueriesAndTransformationsView() {
         label={t('query-editor-next.sidebar.transformations', 'Transformations')}
         isOpen={transformationsOpen}
         onToggle={setTransformationsOpen}
-        headerAction={<TransformationsHeaderAddButton onAdd={expandTransformations} />}
+        headerAction={
+          <AddCardButton
+            variant="transformation"
+            alwaysVisible
+            showLabel={showButtonLabels}
+            onAdd={expandTransformations}
+          />
+        }
       >
         {transformations.length > 0 && (
           <DraggableList

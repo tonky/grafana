@@ -60,6 +60,20 @@ export TMPDIR
 # directory every shard on the host would share, each start wiping the others' server.
 rundir=".enact/state/grafana-e2e/server-${shard_index}-$$"
 server_pid=""
+managed_server=0
+built_verified=0
+
+stop_server() {
+    if [[ -f "${rundir}/pid" ]]; then
+        kill "$(cat "${rundir}/pid")" 2>/dev/null || true
+    fi
+    if [[ -n "${server_pid}" ]]; then
+        kill "${server_pid}" 2>/dev/null || true
+        wait "${server_pid}" 2>/dev/null || true
+        server_pid=""
+    fi
+    rm -rf "${rundir}" || true
+}
 
 # Keep only browser evidence and the server log, never its data, copied binaries,
 # plugins or browser profiles. Each invocation owns its shard directory.
@@ -79,19 +93,13 @@ preserve_diagnostics() {
 cleanup() {
     local status=$?
     trap - EXIT
-    if [[ -f "${rundir}/pid" ]]; then
-        kill "$(cat "${rundir}/pid")" 2>/dev/null || true
-    fi
-    if [[ -n "${server_pid}" ]]; then
-        kill "${server_pid}" 2>/dev/null || true
-        wait "${server_pid}" 2>/dev/null || true
-    fi
+    stop_server
     if [[ "${status}" -ne 0 ]]; then
         if ! preserve_diagnostics; then
             echo "playwright.sh: could not preserve failure diagnostics" >&2
         fi
     fi
-    rm -rf "${work}" "${rundir}" || true
+    rm -rf "${work}" || true
     exit "${status}"
 }
 trap cleanup EXIT
@@ -135,10 +143,13 @@ require_built() {
 ensure_server() {
     local port build_start build_end server_start server_end
     port="$(allocate_port)"
-    build_start="$(date +%s)"
-    require_built
-    build_end="$(date +%s)"
-    log_phase require_built done "duration_s=$((build_end - build_start))"
+    if [[ "${built_verified}" -eq 0 ]]; then
+        build_start="$(date +%s)"
+        require_built
+        build_end="$(date +%s)"
+        built_verified=1
+        log_phase require_built done "duration_s=$((build_end - build_start))"
+    fi
     rm -rf "${rundir}"
     mkdir -p "$(dirname "${rundir}")"
     server_start="$(date +%s)"
@@ -216,6 +227,7 @@ if [[ -z "${GRAFANA_URL:-}" ]]; then
         export GRAFANA_URL="http://127.0.0.1:3001"
         log_phase server_ready skipped "reason=unauthenticated_or_skip_env"
     else
+        managed_server=1
         ensure_server
     fi
 else
@@ -388,6 +400,13 @@ if [[ "${batch_count}" -eq 1 ]]; then
 else
     for ((b = 0; b < batch_count; b++)); do
         batch_idx=$((b + 1))
+        # Restart the managed grafana-server with a fresh RUNDIR before each subsequent
+        # batch so dashboards/folders created by earlier batches (e.g. dashboard-new-layouts)
+        # cannot leak into later suites (e.g. dashboards-suite/dashboard-restore-v1).
+        if [[ "${b}" -gt 0 && "${managed_server}" -eq 1 ]]; then
+            stop_server
+            ensure_server
+        fi
         batch_targets=("${targets[@]:batch_starts[$b]:batch_lengths[$b]}")
         batch_cases="${batch_cases_list[$b]}"
         batch_out="${work}/batch-${batch_idx}-results"
@@ -403,9 +422,13 @@ else
             fi
             # Preserve failing batch artifacts under ${work}/results/batch-<n> so later
             # passing batches never overwrite or discard earlier failure diagnostics.
+            mkdir -p "${work}/results/batch-${batch_idx}"
             if [[ -d "${batch_out}" ]]; then
-                mkdir -p "${work}/results"
-                mv "${batch_out}" "${work}/results/batch-${batch_idx}"
+                mv "${batch_out}"/* "${work}/results/batch-${batch_idx}/" 2>/dev/null || true
+                rm -rf "${batch_out}"
+            fi
+            if [[ -f "${work}/grafana-server.log" ]]; then
+                cp "${work}/grafana-server.log" "${work}/results/batch-${batch_idx}/grafana-server.log" || true
             fi
         else
             rm -rf "${batch_out}"
