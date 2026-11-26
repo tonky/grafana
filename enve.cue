@@ -51,9 +51,11 @@ profiles: dev: schema.#Profile & {
 			lifecycle: postStart: "helpers/postgres-setup.sh $PORT"
 		}
 		// devenv/docker/blocks/mysql_tests; shared tablespace + nosync avoids per-table DDL fsyncs.
+		// --max-connections=500 absorbs transient close+redial spikes in unified/testing benchmarks
+		// (SetMaxOpenConns(50) with default MaxIdleConn=2 spikes Threads_connected past 151 on 2c).
 		mysql: {
 			port:      3316
-			command:   "mysqld --no-defaults --datadir=\"$DATA_DIR\" --port=$PORT --socket=\"$SOCKET_DIR/mysql.sock\" --pid-file=\"$DATA_DIR/mysqld.pid\" --mysqlx=OFF --bind-address=127.0.0.1 --innodb-flush-log-at-trx-commit=0 --innodb-doublewrite=0 --innodb-flush-method=nosync --innodb-file-per-table=0 --skip-log-bin"
+			command:   "mysqld --no-defaults --datadir=\"$DATA_DIR\" --port=$PORT --socket=\"$SOCKET_DIR/mysql.sock\" --pid-file=\"$DATA_DIR/mysqld.pid\" --mysqlx=OFF --bind-address=127.0.0.1 --max-connections=500 --innodb-flush-log-at-trx-commit=0 --innodb-doublewrite=0 --innodb-flush-method=nosync --innodb-file-per-table=0 --skip-log-bin"
 			lifecycle: postStart: "helpers/mysql-setup.sh $PORT"
 		}
 	}
