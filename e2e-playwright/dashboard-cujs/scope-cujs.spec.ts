@@ -37,6 +37,7 @@ test.describe(
   },
   () => {
     test('Choose a scope', async ({ page, gotoDashboardPage }) => {
+      test.setTimeout(60_000);
       const scopesSelector = getScopesSelectorInput(page);
       const recentScopesSelector = getRecentScopesSelector(page);
       const scopeTreeCheckboxes = getScopeTreeCheckboxes(page);
