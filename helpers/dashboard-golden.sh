@@ -24,7 +24,13 @@ tests=(
 )
 helpers="${GRAFANA_ROOT}/helpers"
 targets=()
-[[ $# -gt 0 ]] && while IFS= read -r t; do targets+=("${t}"); done < <(repo_paths "$@")
+if [[ $# -gt 0 ]]; then
+    while IFS= read -r t; do targets+=("${t}"); done < <(repo_paths "$@")
+elif [[ -n "${ENACT_FOOTPRINT_DIR:-}" ]]; then
+    # Whole-suite run with recording enabled: pass the 7 explicit golden test files so
+    # jest.sh enters its recording branch and produces footprints (zero D2 exemptions).
+    targets=("${tests[@]}")
+fi
 
 if [[ "${JEST_LIST:-}" == 1 ]]; then
     exec "${helpers}/jest.sh" . 1 1 "${tests[@]}" -- ${targets[@]+"${targets[@]}"}

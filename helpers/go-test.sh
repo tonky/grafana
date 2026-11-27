@@ -116,9 +116,11 @@ case "${suite}" in
             # planner chose the package, its other tests never ran).
             # shellcheck disable=SC2207
             whole=($(printf '%s\n' "${whole[@]}" | sort -u))
+            declare -A in_whole=()
+            for pkg in "${whole[@]}"; do in_whole["${pkg}"]=1; done
             partial=()
             for pkg in "${packages[@]}"; do
-                printf '%s\n' "${whole[@]}" | grep -qxF -- "${pkg}" || partial+=("${pkg}")
+                [[ -n "${in_whole[${pkg}]:-}" ]] || partial+=("${pkg}")
             done
             status=0
             go test -vet=off -short -timeout=30m "${extra[@]}" "${whole[@]}" || status=$?
@@ -153,9 +155,12 @@ case "${suite}" in
                 # (a recall escape). Split whole (`^TestIntegration`) from named-only (`run_pattern`).
                 # shellcheck disable=SC2207
                 whole=($(printf '%s\n' "${whole[@]}" | sort -u))
-                local partial=() pkg status=0
+                local -A in_whole=()
+                local pkg
+                for pkg in "${whole[@]}"; do in_whole["${pkg}"]=1; done
+                local partial=() status=0
                 for pkg in "${packages[@]}"; do
-                    printf '%s\n' "${whole[@]}" | grep -qxF -- "${pkg}" || partial+=("${pkg}")
+                    [[ -n "${in_whole[${pkg}]:-}" ]] || partial+=("${pkg}")
                 done
                 if [[ "${lock_fd}" == "9" ]]; then
                     go test -vet=off -count=1 "$@" ${ENACT_TEST_VERBOSE:+-v} -timeout=12m -run '^TestIntegration' -skip "${skip}" "${whole[@]}" 9>&- || status=$?

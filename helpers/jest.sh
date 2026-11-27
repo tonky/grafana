@@ -96,6 +96,19 @@ if [[ "${jest_workers}" =~ ^[0-9]+$ && "${jest_workers}" -ge 4 ]]; then
     jest_workers="$(( jest_workers - 1 ))"
 fi
 workers="--maxWorkers=${jest_workers}"
+# Exact execution (--runTestsByPath) when every target is already a materialized test file;
+# preserve --findRelatedTests whenever any source file is present (e.g. @grafana/alerting).
+all_test_files() {
+    local t
+    for t in "$@"; do
+        case "${t}" in
+            *.test.ts | *.test.tsx | *.test.js | *.test.jsx | *.spec.ts | *.spec.tsx | *.spec.js | *.spec.jsx) ;;
+            *) return 1 ;;
+        esac
+    done
+    return 0
+}
+
 if [[ ${#targets[@]} -gt 0 ]]; then
     echo "🧪 jest (${project}): tests related to ${#targets[@]} file(s)" >&2
     # Recording: each wanted target traced alone; jest-attribution.cjs tells enact the tests
@@ -147,11 +160,15 @@ if [[ ${#targets[@]} -gt 0 ]]; then
             done
         fi
         if [[ ${#plain_targets[@]} -gt 0 ]]; then
-            pnpm exec jest "${args[@]}" "${workers}" --findRelatedTests "${plain_targets[@]}" || status=1
+            plain_flag="--findRelatedTests"
+            all_test_files "${plain_targets[@]}" && plain_flag="--runTestsByPath"
+            pnpm exec jest "${args[@]}" "${workers}" "${plain_flag}" "${plain_targets[@]}" || status=1
         fi
         exit "${status}"
     fi
-    exec pnpm exec jest "${args[@]}" "${workers}" --findRelatedTests "${targets[@]}"
+    target_flag="--findRelatedTests"
+    all_test_files "${targets[@]}" && target_flag="--runTestsByPath"
+    exec pnpm exec jest "${args[@]}" "${workers}" "${target_flag}" "${targets[@]}"
 fi
 echo "🧪 jest (${project}): ${tests[*]}, shard ${shard_index}/${shard_total}" >&2
 if [[ "${shard_index}" -gt 1 ]]; then
