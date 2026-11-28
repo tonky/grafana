@@ -1241,7 +1241,7 @@ func runTestIntegrationBackendListHistoryErrorReporting(t *testing.T, backend re
 		},
 	}
 
-	shortContext, cancel := context.WithTimeout(ctx, 1*time.Microsecond)
+	shortContext, cancel := context.WithDeadline(ctx, time.Now().Add(-time.Second))
 	defer cancel()
 
 	res, err := server.List(shortContext, req)

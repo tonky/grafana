@@ -440,6 +440,53 @@ func (h *ProvisioningTestHelper) AwaitJob(t *testing.T, job *unstructured.Unstru
 	repo := job.GetLabels()[jobs.LabelRepository]
 	require.NotEmpty(t, repo)
 
+	defer func() {
+		if !t.Failed() {
+			return
+		}
+		diagCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		targetUID := string(job.GetUID())
+		t.Logf("AwaitJob FAILED diagnostics: repo=%q name=%q post_uid=%q rv=%q created=%s",
+			repo, job.GetName(), targetUID, job.GetResourceVersion(), job.GetCreationTimestamp().Time.Format(time.RFC3339Nano))
+		if activeList, err := h.Jobs.Resource.List(diagCtx, metav1.ListOptions{}); err != nil {
+			t.Logf("  active jobs list error: %v", err)
+		} else {
+			matchedActive := 0
+			for _, item := range activeList.Items {
+				labels := item.GetLabels()
+				if labels[jobs.LabelRepository] != repo && item.GetName() != job.GetName() && string(item.GetUID()) != targetUID {
+					continue
+				}
+				matchedActive++
+				state, _, _ := unstructured.NestedString(item.Object, "status", "state")
+				msg, _, _ := unstructured.NestedString(item.Object, "status", "message")
+				t.Logf("  active job: name=%q uid=%q repo=%q state=%q claim_ts=%q claim_owner=%q created=%s message=%q",
+					item.GetName(), item.GetUID(), labels[jobs.LabelRepository], state,
+					labels[jobs.LabelJobClaim], labels[jobs.LabelJobClaimOwner],
+					item.GetCreationTimestamp().Time.Format(time.RFC3339Nano), msg)
+			}
+			t.Logf("  active jobs summary: total=%d repo_or_name_matched=%d", len(activeList.Items), matchedActive)
+		}
+		if histRes, err := h.Repositories.Resource.Get(diagCtx, repo, metav1.GetOptions{}, "jobs"); err != nil {
+			t.Logf("  historic jobs list error: %v", err)
+		} else if histList, err := histRes.ToList(); err != nil {
+			t.Logf("  historic jobs ToList error: %v", err)
+		} else {
+			var matchedIDs []string
+			for _, item := range histList.Items {
+				labels := item.GetLabels()
+				origUID := labels[jobs.LabelJobOriginalUID]
+				state, _, _ := unstructured.NestedString(item.Object, "status", "state")
+				if origUID == targetUID {
+					matchedIDs = append(matchedIDs, fmt.Sprintf("%s(uid=%s,state=%s)", item.GetName(), item.GetUID(), state))
+				}
+			}
+			t.Logf("  historic jobs summary: repo=%q total=%d original_uid_match_count=%d matched=%v",
+				repo, len(histList.Items), len(matchedIDs), matchedIDs)
+		}
+	}()
+
 	var lastResult *unstructured.Unstructured
 	require.EventuallyWithT(t, func(collect *assert.CollectT) {
 		result, err := h.Repositories.Resource.Get(t.Context(), repo, metav1.GetOptions{},
