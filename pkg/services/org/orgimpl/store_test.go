@@ -999,7 +999,7 @@ func TestIntegration_SQLStore_GetOrgUsers_PopulatesCorrectly(t *testing.T) {
 	userimpl.MockTimeNow(constNow)
 	defer userimpl.ResetTimeNow()
 
-	store, cfg := db.InitTestDBWithCfg(t, sqlstore.InitTestDBOpt{}) //nolint:staticcheck // legacy shared-DB test setup; migrate to NewTestStore
+	store, cfg := db.InitTestDBWithCfg(t) //nolint:staticcheck // legacy shared-DB test setup; migrate to NewTestStore
 	orgUserStore := sqlStore{
 		sql: legacysql.NewDatabaseProvider(store),
 		log: log.NewNopLogger(),

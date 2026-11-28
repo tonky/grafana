@@ -106,6 +106,24 @@ func TestIntegrationTestDatasource(t *testing.T) {
 		require.ElementsMatch(t, []string{"aaa", "bbb"}, keys)
 	})
 
+	// Wait for the async mode-3 dual-write CREATE to land in unified storage before issuing
+	// UPDATE so background UPDATE cannot race CREATE with AlreadyExists on slower runners.
+	{
+		storage := helper.GetEnv().ResourceClient
+		svcCtx, _ := identity.WithServiceIdentity(ctx, helper.Org1.OrgID)
+		key := &resourcepb.ResourceKey{
+			Namespace: "default",
+			Group:     datasourceV0alpha1.GROUP,
+			Resource:  "datasources",
+			Name:      "test",
+		}
+		require.EventuallyWithT(t, func(c *assert.CollectT) {
+			rsp, err := storage.Read(svcCtx, &resourcepb.ReadRequest{Key: key})
+			require.NoError(c, err)
+			require.Nil(c, rsp.Error)
+		}, 5*time.Second, 50*time.Millisecond)
+	}
+
 	t.Run("update", func(t *testing.T) {
 		out, err := client.Update(ctx, &unstructured.Unstructured{
 			Object: map[string]any{

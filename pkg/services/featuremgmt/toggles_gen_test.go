@@ -174,8 +174,9 @@ func readFeatureList(t *testing.T) map[string]featuretoggleapi.Feature {
 	out, err := json.MarshalIndent(current, "", "  ")
 	require.NoError(t, err)
 
-	err = os.WriteFile(featuresFile, out, 0644)
+	err = os.WriteFile(filepath.Join(t.TempDir(), featuresFile), out, 0644)
 	require.NoError(t, err, "error writing file")
+	require.JSONEq(t, string(body), string(out), "toggles_gen.json is out of date")
 
 	return all
 }
